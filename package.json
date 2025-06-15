@@ -12,6 +12,7 @@
     "@clerk/nextjs": "^6.22.0",
     "convex": "^1.24.8",
     "next": "15.3.3",
+    "next-themes": "^0.4.6",
     "ra-data-json-server": "^5.8.3",
     "react": "^19.0.0",
     "react-admin": "^5.8.3",
