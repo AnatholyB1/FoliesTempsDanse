@@ -1,0 +1,32 @@
+"use client";
+import {DataTable} from "@/components/data-table/data-table";
+import {DataTablePagination} from "@/components/data-table/pagination";
+import {DataTableViewOptions} from "@/components/data-table/data-table-view-options";
+import {useDataTable} from "@/components/data-table/data-table-provider";
+import {Skeleton} from "@/components/ui/skeleton";
+
+
+export default function Page() {
+
+    const { isPending } = useDataTable();
+
+    if (isPending) {
+        return (
+            <section className="flex flex-col gap-2 p-4">
+                <Skeleton className="h-8 w-48" />
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-64 w-full" />
+            </section>
+        );
+    }
+
+    return (
+        <section className="flex flex-col gap-2 p-4">
+            <DataTableViewOptions />
+            <DataTable />
+            <DataTablePagination />
+        </section>
+    )
+}
