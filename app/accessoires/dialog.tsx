@@ -17,6 +17,7 @@ import {useMutation} from "@tanstack/react-query";
 import {useConvexMutation} from "@convex-dev/react-query";
 import {api} from "@/convex/_generated/api";
 import {Id} from "@/convex/_generated/dataModel";
+import FormNew from "@/app/accessoires/form-new";
 
 type EditAccessoireDialogProps = {
     open: boolean;
@@ -42,6 +43,34 @@ export function EditAccessoireDialog({ open, onOpenChange, accessoire, onEdit, t
                     </DialogDescription>
                 </DialogHeader>
                 <FormEdit accessoire={accessoire} onEdit={onEdit}/>
+                <DialogFooter>
+                    <DialogClose asChild>
+                        <Button variant="outline">Abandoner</Button>
+                    </DialogClose>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+
+
+export function CreateAccessoireDialog({ open, onOpenChange, onEdit, trigger = false }: Omit<EditAccessoireDialogProps, "accessoire">) {
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            {trigger ? null : (
+                <DialogTrigger asChild>
+                    <Button className={"hover:pointer-coarse"}>Nouveau</Button>
+                </DialogTrigger>
+            )}
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Création d&apos;un accessoire</DialogTitle>
+                    <DialogDescription>
+                        Créez un nouvel accessoire. Assurez-vous que toutes les informations sont correctes avant de sauvegarder.
+                    </DialogDescription>
+                </DialogHeader>
+                <FormNew onCreated={onEdit}/>
                 <DialogFooter>
                     <DialogClose asChild>
                         <Button variant="outline">Abandoner</Button>

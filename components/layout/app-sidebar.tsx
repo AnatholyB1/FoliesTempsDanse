@@ -5,13 +5,12 @@ import {
     SidebarGroup,
     SidebarGroupContent,
     SidebarGroupLabel,
-    SidebarHeader,
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
-    SidebarTrigger,
 } from "@/components/ui/sidebar"
 import {Glasses, Shirt} from "lucide-react";
+import ExcelUploader from "@/components/ui/excel-uploader";
 
 type SidebarItem = {
     title: string;
@@ -34,10 +33,7 @@ const items: SidebarItem[] = [
 
 export default function AppSidebar() {
     return (
-        <Sidebar variant={"inset"} collapsible={"icon"}>
-            <SidebarHeader>
-            <SidebarTrigger />
-            </SidebarHeader>
+        <Sidebar  variant={"inset"} >
             <SidebarContent>
                 <SidebarGroup>
                     <SidebarGroupLabel>Application</SidebarGroupLabel>
@@ -58,7 +54,9 @@ export default function AppSidebar() {
                 </SidebarGroup>
                 <SidebarGroup/>
             </SidebarContent>
-            <SidebarFooter/>
+            <SidebarFooter>
+                <ExcelUploader/>
+            </SidebarFooter>
         </Sidebar>
     )
 }

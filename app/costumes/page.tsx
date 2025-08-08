@@ -4,10 +4,12 @@ import {DataTablePagination} from "@/components/data-table/pagination";
 import {DataTableViewOptions} from "@/components/data-table/data-table-view-options";
 import {useDataTable} from "@/components/data-table/data-table-provider";
 import {Skeleton} from "@/components/ui/skeleton";
+import {CreateAccessoireDialog} from "@/app/accessoires/dialog";
+import {useState} from "react";
 
 
 export default function Page() {
-
+    const [open, setOpen] = useState(false);
     const { isPending } = useDataTable();
 
     if (isPending) {
@@ -24,7 +26,9 @@ export default function Page() {
 
     return (
         <section className="flex flex-col gap-2 p-4">
-            <DataTableViewOptions />
+            <DataTableViewOptions >
+                <CreateAccessoireDialog open={open} onOpenChange={setOpen}  onEdit={(edited) => setOpen(!edited)} />
+            </DataTableViewOptions>
             <DataTable />
             <DataTablePagination />
         </section>

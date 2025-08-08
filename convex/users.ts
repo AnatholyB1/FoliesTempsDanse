@@ -1,5 +1,5 @@
-import { mutation } from "./_generated/server";
-import { Id } from "./_generated/dataModel";
+import {mutation} from "./_generated/server";
+import {Id} from "./_generated/dataModel";
 
 export const store = mutation({
   args: {},
@@ -51,8 +51,14 @@ export const store = mutation({
 
       return user._id;
     }
-    const roleId: Id<"roles"> =
-      "jx7eana8bh993xdbr0wg7r995n7hxsj8" as Id<"roles">;
+
+    const roleUserID = process.env.ROLE_ID;
+
+    if (!roleUserID) {
+        throw new Error("ADMIN_ID environment variable is not set");
+    }
+
+    const roleId =  roleUserID as Id<"roles">;
 
     // If it's a new identity, create a new `User`.
     return await ctx.db.insert("users", {

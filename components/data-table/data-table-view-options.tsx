@@ -14,11 +14,12 @@ import {
 import {useDataTable} from "@/components/data-table/data-table-provider";
 import {Input} from "@/components/ui/input"
 
-export function DataTableViewOptions<T>() {
+
+export function DataTableViewOptions<T>( {children}: Readonly<{ children?: React.ReactNode }>  ) {
     const {table} = useDataTable<T>();
 
     return (
-        <div className="flex items-center py-4">
+        <div className="flex items-center py-4 gap-2">
             <Input
                 placeholder="Rechercher..."
                 value={table.getState().globalFilter ?? ""}
@@ -27,6 +28,7 @@ export function DataTableViewOptions<T>() {
                 }
                 className="max-w-sm"
             />
+            {children}
             <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                     <Button

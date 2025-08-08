@@ -19,8 +19,32 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-    title: "FOLIES TEMPS DANSE",
-    description: "A platform for dance enthusiasts",
+    title: "les Folies Temps'Danse",
+    description: "Application de gestion des costumes et accessoires",
+    keywords: ["costumes", "accessoires", "gestion", "danse", "folies temps danse"],
+    authors: [{name: "Folies Temps'Danse", url: "https://www.folies-temps-danse.com"}],
+    creator: "Folies Temps'Danse",
+    openGraph: {
+        title: "les Folies Temps'Danse",
+        description: "Application de gestion des costumes et accessoires",
+        url: "https://www.lesfoliestempsdanse.com",
+        siteName: "Folies Temps'Danse",
+        images: [
+            {
+                url: "/icon.ico",
+                width: 1200,
+                height: 630,
+                alt: "Folies Temps'Danse - Gestion des costumes et accessoires",
+            },
+        ],
+        locale: "fr_FR",
+        type: "website",
+    },
+    icons: {
+        icon: "/icon.ico",
+        apple: "/icon.ico",
+        shortcut: "/icon.ico",
+    },
 };
 
 
@@ -35,13 +59,11 @@ export default function RootLayout({
         <ClerkProvider>
             <ConvexClientProvider>
                 <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-                    <SidebarProvider>
+                    <SidebarProvider defaultOpen={false}>
                         <AppSidebar/>
                         <SidebarInset>
-                            <main className="grid grow">
                                 <Header/>
                                 {children}
-                            </main>
                             <Toaster/>
                         </SidebarInset>
                     </SidebarProvider>

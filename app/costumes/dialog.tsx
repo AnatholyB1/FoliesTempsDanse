@@ -17,6 +17,7 @@ import {useMutation} from "@tanstack/react-query";
 import {useConvexMutation} from "@convex-dev/react-query";
 import {api} from "@/convex/_generated/api";
 import {Id} from "@/convex/_generated/dataModel";
+import FormNew from "@/app/costumes/form-new";
 
 type EditCostumeDialogProps = {
     open: boolean;
@@ -42,6 +43,32 @@ export function EditCostumeDialog({ open, onOpenChange, costume, onEdit, trigger
                     </DialogDescription>
                 </DialogHeader>
                 <FormEdit costume={costume} onEdit={onEdit}/>
+                <DialogFooter>
+                    <DialogClose asChild>
+                        <Button variant="outline">Abandoner</Button>
+                    </DialogClose>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+export function CreateCostumeDialog({ open, onOpenChange, onEdit, trigger = false }: Omit<EditCostumeDialogProps, "costume">) {
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            {trigger ? null : (
+                <DialogTrigger asChild>
+                    <Button >Nouveau</Button>
+                </DialogTrigger>
+            )}
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Création</DialogTitle>
+                    <DialogDescription>
+                        Créez un nouveau costume. Assurez-vous que toutes les informations sont correctes avant de sauvegarder.
+                    </DialogDescription>
+                </DialogHeader>
+                <FormNew onCreated={onEdit}/>
                 <DialogFooter>
                     <DialogClose asChild>
                         <Button variant="outline">Abandoner</Button>
