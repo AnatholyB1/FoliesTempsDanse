@@ -48,6 +48,7 @@ export default function ExcelUploader() {
             toast.success("Import terminé !");
         } catch (error) {
             setOpen(false);
+            console.error(error); 
             toast.error("Erreur lors de l'import");
         }
     };
