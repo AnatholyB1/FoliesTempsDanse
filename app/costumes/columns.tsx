@@ -27,17 +27,13 @@ export const columns: ColumnDef<Costume>[] = [
             const costume = row.original;
             return (
                 <div className="flex justify-center items-center">
-                    {costume.photo ? (
                         <Image
                             width={30}
                             height={30}
-                            src={costume.photo}
+                            src={costume.photo || "/placeholder.jpg"}
                             alt="Costume"
                             className="rounded-full h-[30px] object-cover"
                         />
-                    ) : (
-                        <span className="text-gray-500">Aucune photo</span>
-                    )}
                 </div>
             );
         },
