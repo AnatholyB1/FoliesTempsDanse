@@ -15,6 +15,7 @@ export default defineSchema({
     email_verified: v.optional(v.boolean()),
     phone_number_verified: v.optional(v.boolean()),
     role: v.id("roles"),
+    saisonId: v.optional(v.id("saison")),
   }).index("by_token", ["tokenIdentifier"]),
 
   roles: defineTable({
@@ -47,5 +48,46 @@ export default defineSchema({
     divers: v.optional(v.string()),
     portant: v.optional(v.number()),
     photo_prise_par: v.optional(v.string()),
+  }),
+
+  saison: defineTable({
+    nom: v.string(),
+    annee: v.string(),
+    description: v.optional(v.string()),
+    active: v.optional(v.boolean()),
+  }),
+
+  tableaux: defineTable({
+    nom: v.string(),
+    saisonId: v.id("saison"),
+    description: v.optional(v.string()),
+  }),
+
+  choregraphies: defineTable({
+    nom: v.string(),
+    tableauId: v.id("tableaux"),
+    musique: v.optional(v.string()),
+    ordre: v.optional(v.number()),
+    duree: v.optional(v.number()),
+    description: v.optional(v.string()),
+  }),
+
+  danseuses: defineTable({
+    nom: v.string(),
+    infos: v.optional(v.string()),
+    saisonId: v.id("saison"),
+    userId: v.optional(v.id("users")),
+  }),
+
+  choregraphie_danseuse: defineTable({
+    choregraphieId: v.id("choregraphies"),
+    danseuseId: v.id("danseuses"),
+  }),
+
+  assignations: defineTable({
+    danseuseId: v.id("danseuses"),
+    choregraphieId: v.id("choregraphies"),
+    costumeIds: v.optional(v.array(v.id("costumes"))),
+    accessoireIds: v.optional(v.array(v.id("accessoires"))),
   }),
 });
