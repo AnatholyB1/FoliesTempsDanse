@@ -10,24 +10,19 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogTrigger, DialogContent } from "@/components/ui/dialog";
-import { useRef, useEffect } from "react";
-import {
-  Form,
-  FormField,
-  FormLabel,
-  FormControl,
-  FormItem,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
+
 import { toast } from "sonner";
 import { Leaf, CheckCircle2, Pencil, Trash2, Loader2 } from "lucide-react";
-// import { useQuery, useMutation } from "convex/react"; // à adapter selon ton setup
-// import { getSaisons, createSaison, updateSaison, deleteSaison } from "../../convex/saison";
+import {
+  SaisonDeleteDialog,
+  SaisonFormDialog,
+  SaisonFormValues,
+} from "./dialog";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { convexQuery, useConvexMutation } from "@convex-dev/react-query";
+import { api } from "@/convex/_generated/api";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Id } from "@/convex/_generated/dataModel";
 
 type Saison = {
   _id: string;
@@ -38,116 +33,108 @@ type Saison = {
 };
 
 export default function SaisonsPage() {
-  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
-  const [saisonToDelete, setSaisonToDelete] = useState<Saison | null>(null);
-  // const saisons = useQuery(getSaisons) ?? [];
-  // const create = useMutation(createSaison);
-  // const update = useMutation(updateSaison);
-  // const remove = useMutation(deleteSaison);
-  // Simule des données pour le squelette
-  const [saisons, setSaisons] = useState<Saison[]>([
-    {
-      _id: "1",
-      nom: "2024-2025",
-      annee: "2025",
-      description: "Saison actuelle",
-      active: true,
+  const { data: saisons, isPending: dataPending } = useQuery(
+    convexQuery(api.saisons.getSaisons, {})
+  );
+  const { mutate: create, isPending: createPending } = useMutation({
+    mutationFn: useConvexMutation(api.saisons.createSaison),
+    onSuccess: () => {
+      toast.success("Saison créée");
     },
-    {
-      _id: "2",
-      nom: "2023-2024",
-      annee: "2024",
-      description: "Saison précédente",
-      active: false,
+    onError: () => {
+      toast.error("Erreur lors de la création de la saison");
     },
-  ]);
-  const [loading, setLoading] = useState(false);
-  const [openDialog, setOpenDialog] = useState(false);
-  const [editSaison, setEditSaison] = useState<Saison | null>(null);
+  });
+  const { mutate: update, isPending: updatePending } = useMutation({
+    mutationFn: useConvexMutation(api.saisons.updateSaison),
+    onSuccess: () => {
+      toast.success("Saison modifiée");
+    },
+    onError: () => {
+      toast.error("Erreur lors de la modification de la saison");
+    },
+  });
+  const { mutate: remove, isPending: removePending } = useMutation({
+    mutationFn: useConvexMutation(api.saisons.deleteSaison),
+    onSuccess: () => {
+      toast.success("Saison supprimée");
+    },
+    onError: () => {
+      toast.error("Erreur lors de la suppression de la saison");
+    },
+  });
 
   // Handlers CRUD (à connecter à Convex)
-  const handleActivate = async (id: string) => {
-    setLoading(true);
-    // await update({ id, active: true });
-    setSaisons(saisons.map((s) => ({ ...s, active: s._id === id })));
-    setLoading(false);
-    toast.success("Saison activée");
+  const handleActivate = async (id: Id<"saison">) => {
+    update({ id, active: true });
   };
-  const handleDelete = async () => {
-    if (!saisonToDelete) return;
-    setLoading(true);
-    // await remove({ id: saisonToDelete._id });
-    setSaisons(saisons.filter((s) => s._id !== saisonToDelete._id));
-    setLoading(false);
-    setConfirmDialogOpen(false);
-    setSaisonToDelete(null);
-    toast.success("Saison supprimée");
-  };
-  const handleEdit = (saison: Saison) => {
-    setEditSaison(saison);
-    setOpenDialog(true);
-  };
-  const handleCreate = () => {
-    setEditSaison(null);
-    setOpenDialog(true);
-  };
-  // Zod schema
-  const saisonSchema = z.object({
-    nom: z.string().min(2, "Le nom est requis"),
-    annee: z.string().min(4, "L'année est requise"),
-    description: z.string().optional(),
-  });
 
-  type SaisonFormValues = z.infer<typeof saisonSchema>;
-
-  const form = useForm<SaisonFormValues>({
-    resolver: zodResolver(saisonSchema),
-    defaultValues: {
-      nom: editSaison?.nom ?? "",
-      annee: editSaison?.annee ?? "",
-      description: editSaison?.description ?? "",
-    },
-    mode: "onChange",
-  });
-
-  // Focus automatique sur le premier champ
-  const nomInputRef = useRef<HTMLInputElement>(null);
-  useEffect(() => {
-    if (openDialog && nomInputRef.current) {
-      nomInputRef.current.focus();
-    }
-  }, [openDialog]);
-
-  const handleSave = async (values: SaisonFormValues) => {
-    setLoading(true);
-    if (editSaison) {
-      setSaisons(
-        saisons.map((s) =>
-          s._id === editSaison._id ? { ...values, _id: editSaison._id } : s
-        )
-      );
-      toast.success("Saison modifiée");
-    } else {
-      setSaisons([...saisons, { ...values, _id: String(Date.now()) }]);
-      toast.success("Saison créée");
-    }
-    setLoading(false);
-    setOpenDialog(false);
-    form.reset();
+  const handleCreate = async (values: SaisonFormValues) => {
+    create(values);
   };
+
+  const handleUpdate = async (id: Id<"saison">, values: SaisonFormValues) => {
+    update({ id, ...values });
+  };
+
+  if (dataPending) {
+    return (
+      <div className="max-w-4xl mx-auto py-8 px-4">
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-3xl font-bold flex items-center gap-2 mr-2">
+            <Leaf className="w-7 h-7 text-primary" /> Saisons
+          </h1>
+          <Skeleton className="w-32 h-10 rounded-md" />
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {[...Array(2)].map((_, i) => (
+            <div
+              key={i}
+              className="relative border-border rounded-lg p-4 shadow-sm bg-background"
+            >
+              <div className="flex flex-row items-center gap-2 mb-2">
+                <Skeleton className="w-20 h-6 rounded" />
+                <Skeleton className="w-12 h-5 rounded" />
+              </div>
+              <div className="mb-2">
+                <Skeleton className="w-16 h-4 rounded" />
+              </div>
+              <div className="mb-2">
+                <Skeleton className="w-32 h-4 rounded" />
+              </div>
+              <div className="flex justify-between items-center w-full gap-2 mb-2">
+                <Skeleton className="w-20 h-8 rounded" />
+                <Skeleton className="w-20 h-8 rounded" />
+                <Skeleton className="w-20 h-8 rounded" />
+              </div>
+              <div className="flex justify-end items-center w-full gap-2">
+                <Skeleton className="w-16 h-8 rounded" />
+                <Skeleton className="w-16 h-8 rounded" />
+                <Skeleton className="w-16 h-8 rounded" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-4xl mx-auto py-8 px-4">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold flex items-center gap-2">
+        <h1 className="text-3xl font-bold flex items-center gap-2 mr-2">
           <Leaf className="w-7 h-7 text-primary" /> Saisons
         </h1>
-        <Button onClick={handleCreate} variant="default">
-          Nouvelle saison
-        </Button>
+        <SaisonFormDialog
+          loading={createPending}
+          onSave={handleCreate}
+          editSaison={null}
+        >
+          <Button variant="default">Nouvelle saison</Button>
+        </SaisonFormDialog>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {saisons.map((saison) => (
+        {saisons?.map((saison) => (
           <Card
             key={saison._id}
             className={`relative ${saison.active ? "border-primary shadow-lg" : "border-border"}`}
@@ -192,195 +179,50 @@ export default function SaisonsPage() {
                     size="sm"
                     variant="outline"
                     onClick={() => handleActivate(saison._id)}
-                    disabled={loading}
+                    disabled={updatePending}
                   >
-                    {loading ? (
+                    {updatePending ? (
                       <Loader2 className="animate-spin w-4 h-4" />
                     ) : (
                       "Activer"
                     )}
                   </Button>
                 )}
-                <Button
-                  size="sm"
-                  variant="secondary"
-                  onClick={() => handleEdit(saison)}
-                  disabled={loading}
+                <SaisonFormDialog
+                  editSaison={saison}
+                  loading={updatePending}
+                  onSave={(values) =>
+                    handleUpdate(saison._id as Id<"saison">, values)
+                  }
                 >
-                  <Pencil className="w-4 h-4 mr-1" /> Modifier
-                </Button>
-                <Button
-                  size="sm"
-                  variant="destructive"
-                  onClick={() => {
-                    setSaisonToDelete(saison);
-                    setConfirmDialogOpen(true);
-                  }}
-                  disabled={loading}
-                  aria-label={`Supprimer la saison ${saison.nom}`}
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    type="button"
+                    disabled={updatePending}
+                  >
+                    <Pencil className="w-4 h-4 mr-1" /> Modifier
+                  </Button>
+                </SaisonFormDialog>
+                <SaisonDeleteDialog
+                  saisonToDelete={saison}
+                  onDelete={() => remove({ id: saison._id as Id<"saison"> })}
+                  loading={removePending}
                 >
-                  <Trash2 className="w-4 h-4 mr-1" /> Supprimer
-                </Button>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    disabled={removePending}
+                    aria-label={`Supprimer la saison ${saison.nom}`}
+                  >
+                    <Trash2 className="w-4 h-4 mr-1" /> Supprimer
+                  </Button>
+                </SaisonDeleteDialog>
               </div>
             </CardFooter>
           </Card>
         ))}
       </div>
-      <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-        <DialogContent
-          aria-modal="true"
-          role="dialog"
-          className="animate-fade-in"
-        >
-          {/* Formulaire de création/édition de saison */}
-          <Form
-            {...form}
-            onSubmit={form.handleSubmit(handleSave)}
-            className="space-y-4"
-            aria-label="Formulaire saison"
-          >
-            <h2 className="text-xl font-semibold mb-2">
-              {editSaison ? "Modifier la saison" : "Créer une saison"}
-            </h2>
-            <FormField
-              name="nom"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <FormItem>
-                  <FormLabel htmlFor="nom">Nom</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      id="nom"
-                      ref={nomInputRef}
-                      placeholder="Nom de la saison"
-                      className="bg-card text-card-foreground focus:ring-2 focus:ring-[var(--primary)] focus:outline-none"
-                      aria-invalid={!!fieldState.error}
-                      aria-describedby="nom-error"
-                    />
-                  </FormControl>
-                  <FormMessage
-                    id="nom-error"
-                    className="text-destructive text-xs"
-                  />
-                </FormItem>
-              )}
-            />
-            <FormField
-              name="annee"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <FormItem>
-                  <FormLabel htmlFor="annee">Année</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      id="annee"
-                      placeholder="Année"
-                      className="bg-card text-card-foreground focus:ring-2 focus:ring-[var(--primary)] focus:outline-none"
-                      aria-invalid={!!fieldState.error}
-                      aria-describedby="annee-error"
-                    />
-                  </FormControl>
-                  <FormMessage
-                    id="annee-error"
-                    className="text-destructive text-xs"
-                  />
-                </FormItem>
-              )}
-            />
-            <FormField
-              name="description"
-              control={form.control}
-              render={({ field, fieldState }) => (
-                <FormItem>
-                  <FormLabel htmlFor="description">Description</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      id="description"
-                      placeholder="Description"
-                      className="bg-card text-card-foreground focus:ring-2 focus:ring-[var(--primary)] focus:outline-none"
-                      aria-invalid={!!fieldState.error}
-                      aria-describedby="description-error"
-                    />
-                  </FormControl>
-                  <FormMessage
-                    id="description-error"
-                    className="text-destructive text-xs"
-                  />
-                </FormItem>
-              )}
-            />
-            <div className="flex justify-end gap-2">
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => setOpenDialog(false)}
-                aria-label="Annuler"
-              >
-                Annuler
-              </Button>
-              <Button
-                type="submit"
-                variant="default"
-                disabled={loading}
-                aria-label="Enregistrer"
-                tabIndex={0}
-                style={{ boxShadow: "0 0 0 2px var(--primary)" }}
-              >
-                {loading ? (
-                  <Loader2 className="animate-spin w-4 h-4" />
-                ) : (
-                  "Enregistrer"
-                )}
-              </Button>
-            </div>
-          </Form>
-        </DialogContent>
-      </Dialog>
-      {/* Dialog de confirmation de suppression */}
-      <Dialog open={confirmDialogOpen} onOpenChange={setConfirmDialogOpen}>
-        <DialogContent
-          aria-modal="true"
-          role="alertdialog"
-          className="animate-fade-in"
-        >
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold mb-2 text-destructive">
-              Confirmer la suppression
-            </h2>
-            <p>
-              Voulez-vous vraiment supprimer la saison{" "}
-              <span className="font-bold">{saisonToDelete?.nom}</span> ? Cette
-              action est irréversible.
-            </p>
-            <div className="flex justify-end gap-2">
-              <Button
-                type="button"
-                variant="secondary"
-                onClick={() => setConfirmDialogOpen(false)}
-                aria-label="Annuler"
-              >
-                Annuler
-              </Button>
-              <Button
-                type="button"
-                variant="destructive"
-                onClick={handleDelete}
-                disabled={loading}
-                aria-label="Confirmer la suppression"
-              >
-                {loading ? (
-                  <Loader2 className="animate-spin w-4 h-4" />
-                ) : (
-                  "Supprimer"
-                )}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

@@ -16,7 +16,7 @@ import type {
 import type * as accessoires from "../accessoires.js";
 import type * as costumes from "../costumes.js";
 import type * as file from "../file.js";
-import type * as saison from "../saison.js";
+import type * as saisons from "../saisons.js";
 import type * as users from "../users.js";
 
 /**
@@ -31,7 +31,7 @@ declare const fullApi: ApiFromModules<{
   accessoires: typeof accessoires;
   costumes: typeof costumes;
   file: typeof file;
-  saison: typeof saison;
+  saisons: typeof saisons;
   users: typeof users;
 }>;
 export declare const api: FilterApi<
