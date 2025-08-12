@@ -74,7 +74,7 @@ export function SaisonFormDialog({
             <FormField
               name="nom"
               control={form.control}
-              render={({ field, fieldState }) => (
+              render={({ field }) => (
                 <FormItem>
                   <FormLabel htmlFor="nom">Nom</FormLabel>
                   <FormControl>
@@ -95,7 +95,7 @@ export function SaisonFormDialog({
             <FormField
               name="annee"
               control={form.control}
-              render={({ field, fieldState }) => (
+              render={({ field }) => (
                 <FormItem>
                   <FormLabel htmlFor="annee">Année</FormLabel>
                   <FormControl>
@@ -116,7 +116,7 @@ export function SaisonFormDialog({
             <FormField
               name="description"
               control={form.control}
-              render={({ field, fieldState }) => (
+              render={({ field }) => (
                 <FormItem>
                   <FormLabel htmlFor="description">Description</FormLabel>
                   <FormControl>

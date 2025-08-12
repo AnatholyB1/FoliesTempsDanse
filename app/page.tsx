@@ -17,6 +17,8 @@ import {
   UserCheck,
   UserX,
   Leaf,
+  FileMusic,
+  Proportions,
 } from "lucide-react";
 import { useStoreUserEffect } from "@/hooks/useStoreUserEffect";
 import { CreateCostumeDialog } from "@/app/costumes/dialog";
@@ -132,13 +134,28 @@ export default function Home() {
       ),
     },
     {
+      title: "Utilisateurs",
+      description: "Gérez les utilisateurs et leurs rôles.",
+      href: "/users",
+      icon: <UserCheck className="w-7 h-7 text-primary" />,
+    },
+    {
       title: "Saisons",
       description: "Gérez les saisons de vos spectacles.",
       href: "/saisons",
       icon: <Leaf className="w-7 h-7 text-primary" />,
-      // dialog: (
-      //   <CreateSaisonDialog open={openSaisonDialog} onOpenChange={setOpenSaisonDialog} onEdit={(edited) => setOpenSaisonDialog(!edited)} />
-      // ),
+    },
+    {
+      title: "Tableaux",
+      description: "Gérez les tableaux de vos spectacles.",
+      href: "/tableaux",
+      icon: <Proportions className="w-7 h-7 text-primary" />,
+    },
+    {
+      title: "Chorégraphies",
+      description: "Gérez les chorégraphies de vos spectacles.",
+      href: "/choregraphies",
+      icon: <FileMusic className="w-7 h-7 text-primary" />,
     },
   ];
 

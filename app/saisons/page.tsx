@@ -1,5 +1,4 @@
 "use client";
-import { useState } from "react";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import {
@@ -10,7 +9,6 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-
 import { toast } from "sonner";
 import { Leaf, CheckCircle2, Pencil, Trash2, Loader2 } from "lucide-react";
 import {
@@ -23,14 +21,6 @@ import { convexQuery, useConvexMutation } from "@convex-dev/react-query";
 import { api } from "@/convex/_generated/api";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Id } from "@/convex/_generated/dataModel";
-
-type Saison = {
-  _id: string;
-  nom: string;
-  annee: string;
-  description?: string;
-  active?: boolean;
-};
 
 export default function SaisonsPage() {
   const { data: saisons, isPending: dataPending } = useQuery(
