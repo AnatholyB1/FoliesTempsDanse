@@ -15,7 +15,6 @@ export default defineSchema({
     email_verified: v.optional(v.boolean()),
     phone_number_verified: v.optional(v.boolean()),
     role: v.id("roles"),
-    saisonId: v.optional(v.id("saison")),
   }).index("by_token", ["tokenIdentifier"]),
 
   roles: defineTable({
