@@ -45,7 +45,7 @@ export function EditAccessoireDialog({ open, onOpenChange, accessoire, onEdit, t
                 <FormEdit accessoire={accessoire} onEdit={onEdit}/>
                 <DialogFooter>
                     <DialogClose asChild>
-                        <Button variant="outline">Abandoner</Button>
+                        <Button variant="outline">Abandonner</Button>
                     </DialogClose>
                 </DialogFooter>
             </DialogContent>
@@ -73,7 +73,7 @@ export function CreateAccessoireDialog({ open, onOpenChange, onEdit, trigger = f
                 <FormNew onCreated={onEdit}/>
                 <DialogFooter>
                     <DialogClose asChild>
-                        <Button variant="outline">Abandoner</Button>
+                        <Button variant="outline">Abandonner</Button>
                     </DialogClose>
                 </DialogFooter>
             </DialogContent>
@@ -127,7 +127,7 @@ export function DeleteAccessoireDialog({id,  open, onOpenChange,onDelete = () =>
                 </DialogHeader>
                 <DialogFooter>
                     <DialogClose asChild>
-                        <Button variant="outline">Abandoner</Button>
+                        <Button variant="outline">Abandonner</Button>
                     </DialogClose>
                     <Button type="button" onClick={handleDelete}>
                         Continuer

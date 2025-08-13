@@ -45,7 +45,7 @@ export function EditCostumeDialog({ open, onOpenChange, costume, onEdit, trigger
                 <FormEdit costume={costume} onEdit={onEdit}/>
                 <DialogFooter>
                     <DialogClose asChild>
-                        <Button variant="outline">Abandoner</Button>
+                        <Button variant="outline">Abandonner</Button>
                     </DialogClose>
                 </DialogFooter>
             </DialogContent>
@@ -71,7 +71,7 @@ export function CreateCostumeDialog({ open, onOpenChange, onEdit, trigger = fals
                 <FormNew onCreated={onEdit}/>
                 <DialogFooter>
                     <DialogClose asChild>
-                        <Button variant="outline">Abandoner</Button>
+                        <Button variant="outline">Abandonner</Button>
                     </DialogClose>
                 </DialogFooter>
             </DialogContent>
@@ -125,7 +125,7 @@ export function DeleteCostumeDialog({id,  open, onOpenChange,onDelete = () => {}
                 </DialogHeader>
                 <DialogFooter>
                     <DialogClose asChild>
-                        <Button variant="outline">Abandoner</Button>
+                        <Button variant="outline">Abandonner</Button>
                     </DialogClose>
                     <Button type="button" onClick={handleDelete}>
                         Continuer

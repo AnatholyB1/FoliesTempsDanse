@@ -19,6 +19,7 @@ import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage,} from "@
 import {Input} from "@/components/ui/input";
 import {Assignation, Danseuse, Role, Saison, User} from "@/type";
 import {useSearch} from "@/components/global-search";
+import Link from "next/link";
 
 const danseuseSchema = z.object({
   userId: z.string().min(1, ),
@@ -142,6 +143,22 @@ export default function UsersPage() {
             </div>
           ))}
         </div>
+      </div>
+    );
+  }
+
+  // si il n'y a pas de saisons, on affiche un mmessage
+  if (!saisons || saisons.length === 0) {
+    return (
+      <div className="max-w-4xl mx-auto py-8 px-4">
+        <h1 className="text-3xl font-bold mb-8">Gestion des utilisateurs</h1>
+        <p className="text-red-500">Aucune saison disponible. Veuillez créer une saison avant de gérer les utilisateurs.</p>
+        <Button
+          className="mt-4">
+          <Link href="/saisons" >
+            Gérer les saisons
+          </Link>
+        </Button>
       </div>
     );
   }
