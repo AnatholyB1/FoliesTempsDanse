@@ -1,31 +1,22 @@
 import React from "react";
-import {
-  Form,
-  FormField,
-  FormLabel,
-  FormControl,
-  FormItem,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
+import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage,} from "@/components/ui/form";
+import {Input} from "@/components/ui/input";
 import {
   Dialog,
   DialogClose,
   DialogContent,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
-import z from "zod";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import {
+  DialogDescription,
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
+  DialogTrigger,
 } from "@/components/ui/dialog";
-import { Saison } from "@/type";
+import {Button} from "@/components/ui/button";
+import {Loader2} from "lucide-react";
+import z from "zod";
+import {useForm} from "react-hook-form";
+import {zodResolver} from "@hookform/resolvers/zod";
+import {Saison} from "@/type";
 
 const saisonSchema = z.object({
   nom: z.string().min(2, "Le nom est requis"),
@@ -40,6 +31,8 @@ type SaisonFormDialogProps = {
   loading: boolean;
   onSave: (values: SaisonFormValues) => void;
   children?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 };
 
 export function SaisonFormDialog({
@@ -47,6 +40,8 @@ export function SaisonFormDialog({
   loading,
   onSave,
   children,
+  open,
+  onOpenChange,
 }: SaisonFormDialogProps) {
   // Zod schema
 
@@ -61,7 +56,7 @@ export function SaisonFormDialog({
   });
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSave)} className="space-y-4">
           <DialogTrigger asChild>{children}</DialogTrigger>
@@ -166,6 +161,8 @@ type SaisonDeleteDialogProps = {
   onDelete: () => void;
   loading: boolean;
   children?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 };
 
 export function SaisonDeleteDialog({
@@ -173,9 +170,11 @@ export function SaisonDeleteDialog({
   onDelete,
   loading,
   children,
+  open,
+  onOpenChange,
 }: SaisonDeleteDialogProps) {
   return (
-    <Dialog>
+    <Dialog  open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent className="animate-fade-in">
         <DialogHeader>

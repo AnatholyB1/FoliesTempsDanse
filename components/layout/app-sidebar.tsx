@@ -9,8 +9,9 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
-import { Glasses, Leaf, Shirt } from "lucide-react";
+import {FileMusic, Glasses, Leaf, Proportions, Shirt, UserCheck} from "lucide-react";
 import ExcelUploader from "@/components/ui/excel-uploader";
+import Link from "next/link";
 
 type SidebarItem = {
   title: string;
@@ -22,17 +23,32 @@ const items: SidebarItem[] = [
   {
     title: "Costumes",
     href: "/costumes",
-    icon: <Shirt className={"size-5"} />,
+    icon: <Shirt className="w-4 h-4 text-primary" />,
   },
   {
     title: "Accessoires",
     href: "/accessoires",
-    icon: <Glasses className={"size-5"} />,
+    icon: <Glasses className="w-4 h-4 text-primary" />,
+  },
+  {
+    title: "Utilisateurs",
+    href: "/users",
+    icon: <UserCheck className="w-4 h-4 text-primary" />,
   },
   {
     title: "Saisons",
     href: "/saisons",
-    icon: <Leaf className={"size-5"} />,
+    icon: <Leaf className="w-4 h-4 text-primary" />,
+  },
+  {
+    title: "Tableaux",
+    href: "/tableaux",
+    icon: <Proportions className="w-4 h-4 text-primary" />,
+  },
+  {
+    title: "Chorégraphies",
+    href: "/choregraphies",
+    icon: <FileMusic className="w-4 h-4 text-primary" />,
   },
 ];
 
@@ -47,7 +63,7 @@ export default function AppSidebar() {
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton>
-                    <a
+                    <Link
                       className={
                         "flex flex-row items-center justify-center gap-2"
                       }
@@ -55,7 +71,7 @@ export default function AppSidebar() {
                     >
                       {item.icon}
                       <span>{item.title}</span>
-                    </a>
+                    </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

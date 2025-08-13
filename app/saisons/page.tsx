@@ -1,28 +1,20 @@
 "use client";
-import { Badge } from "@/components/ui/badge";
+import {Badge} from "@/components/ui/badge";
 import Link from "next/link";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import { Leaf, CheckCircle2, Pencil, Trash2, Loader2 } from "lucide-react";
-import {
-  SaisonDeleteDialog,
-  SaisonFormDialog,
-  SaisonFormValues,
-} from "./dialog";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { convexQuery, useConvexMutation } from "@convex-dev/react-query";
-import { api } from "@/convex/_generated/api";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Id } from "@/convex/_generated/dataModel";
+import {Card, CardContent, CardFooter, CardHeader, CardTitle,} from "@/components/ui/card";
+import {Button} from "@/components/ui/button";
+import {toast} from "sonner";
+import {CheckCircle2, Leaf, Loader2, Pencil, Trash2} from "lucide-react";
+import {SaisonDeleteDialog, SaisonFormDialog, SaisonFormValues,} from "./dialog";
+import {useMutation, useQuery} from "@tanstack/react-query";
+import {convexQuery, useConvexMutation} from "@convex-dev/react-query";
+import {api} from "@/convex/_generated/api";
+import {Skeleton} from "@/components/ui/skeleton";
+import {Id} from "@/convex/_generated/dataModel";
+import {useState} from "react";
 
 export default function SaisonsPage() {
+  const [open, setOpen] = useState<string>("")
   const { data: saisons, isPending: dataPending } = useQuery(
     convexQuery(api.saisons.getSaisons, {})
   );
@@ -116,6 +108,14 @@ export default function SaisonsPage() {
           <Leaf className="w-7 h-7 text-primary" /> Saisons
         </h1>
         <SaisonFormDialog
+          open={open === "create"}
+          onOpenChange={(open) => {
+            if (open) {
+              setOpen("create");
+            } else {
+              setOpen("");
+            }
+          }}
           loading={createPending}
           onSave={handleCreate}
           editSaison={null}
@@ -157,7 +157,7 @@ export default function SaisonsPage() {
                     <span>Costumes</span>
                   </Button>
                 </Link>
-                <Link href={`/utilisateurs?saison=${saison._id}`} passHref>
+                <Link href={`/users?saison=${saison._id}`} passHref>
                   <Button asChild size="sm" variant="ghost">
                     <span>Utilisateurs</span>
                   </Button>
@@ -179,6 +179,14 @@ export default function SaisonsPage() {
                   </Button>
                 )}
                 <SaisonFormDialog
+                  open={open === `edit-${saison._id}`}
+                  onOpenChange={(open) => {
+                    if (open) {
+                      setOpen(`edit-${saison._id}`);
+                    } else {
+                      setOpen("");
+                    }
+                  }}
                   editSaison={saison}
                   loading={updatePending}
                   onSave={(values) =>
@@ -195,6 +203,14 @@ export default function SaisonsPage() {
                   </Button>
                 </SaisonFormDialog>
                 <SaisonDeleteDialog
+                  open={open === `delete-${saison._id}`}
+                  onOpenChange={(open) => {
+                    if (open) {
+                      setOpen(`delete-${saison._id}`);
+                    } else {
+                      setOpen("");
+                    }
+                  }}
                   saisonToDelete={saison}
                   onDelete={() => remove({ id: saison._id as Id<"saison"> })}
                   loading={removePending}

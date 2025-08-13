@@ -1,14 +1,13 @@
-import { query } from "./_generated/server";
-import { v } from "convex/values";
-import { mutation } from "./_generated/server";
-import { Id } from "./_generated/dataModel";
+import {mutation, query} from "./_generated/server";
+import {v} from "convex/values";
+import {Id} from "./_generated/dataModel";
 
 // Récupère tous les utilisateurs avec leur rôle et assignations si danseuse
 export const getUsers = query({
   args: {},
   handler: async (ctx) => {
     const users = await ctx.db.query("users").collect();
-    const usersWithAssignations = await Promise.all(
+    return await Promise.all(
       users.map(async (user) => {
         let assignations: any[] = [];
         const danseuse = await ctx.db
@@ -24,7 +23,6 @@ export const getUsers = query({
         return { ...user, danseuse, assignations };
       })
     );
-    return usersWithAssignations;
   },
 });
 // Mutation pour assigner un rôle à un utilisateur
@@ -51,25 +49,20 @@ export const setDanseuse = mutation({
         .query("danseuses")
         .filter((q) => q.eq(q.field("userId"), userId))
         .unique();
-
       if (checked) {
         // Crée la danseuse si elle n'existe pas
         if (!danseuse) {
-          console.log("Création de la danseuse");
           await ctx.db.insert("danseuses", { userId, infos, nom, saisonId });
         }
-        console.log("Mise à jour de la danseuse");
       } else {
         // Supprime la danseuse si elle existe
-        console.log("Suppression de la danseuse");
         if (danseuse) {
-          console.log("Suppression de la danseuse et elle existe");
           await ctx.db.delete(danseuse._id);
         }
       }
       return true;
     } catch (error) {
-      throw new Error("Erreur lors de la création de la danseuse");
+      throw new Error( `Erreur lors de la création de la danseuse  ${error}`);
     }
   },
 });
