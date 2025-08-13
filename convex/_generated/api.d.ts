@@ -14,10 +14,12 @@ import type {
   FunctionReference,
 } from "convex/server";
 import type * as accessoires from "../accessoires.js";
+import type * as choregraphies from "../choregraphies.js";
 import type * as costumes from "../costumes.js";
 import type * as file from "../file.js";
 import type * as roles from "../roles.js";
 import type * as saisons from "../saisons.js";
+import type * as tableaux from "../tableaux.js";
 import type * as users from "../users.js";
 
 /**
@@ -30,10 +32,12 @@ import type * as users from "../users.js";
  */
 declare const fullApi: ApiFromModules<{
   accessoires: typeof accessoires;
+  choregraphies: typeof choregraphies;
   costumes: typeof costumes;
   file: typeof file;
   roles: typeof roles;
   saisons: typeof saisons;
+  tableaux: typeof tableaux;
   users: typeof users;
 }>;
 export declare const api: FilterApi<

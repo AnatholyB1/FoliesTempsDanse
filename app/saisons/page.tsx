@@ -22,6 +22,7 @@ export default function SaisonsPage() {
     mutationFn: useConvexMutation(api.saisons.createSaison),
     onSuccess: () => {
       toast.success("Saison créée");
+      setOpen("");
     },
     onError: () => {
       toast.error("Erreur lors de la création de la saison");
@@ -31,6 +32,7 @@ export default function SaisonsPage() {
     mutationFn: useConvexMutation(api.saisons.updateSaison),
     onSuccess: () => {
       toast.success("Saison modifiée");
+      setOpen("");
     },
     onError: () => {
       toast.error("Erreur lors de la modification de la saison");
@@ -40,6 +42,7 @@ export default function SaisonsPage() {
     mutationFn: useConvexMutation(api.saisons.deleteSaison),
     onSuccess: () => {
       toast.success("Saison supprimée");
+      setOpen("");
     },
     onError: () => {
       toast.error("Erreur lors de la suppression de la saison");
@@ -148,17 +151,17 @@ export default function SaisonsPage() {
             <CardFooter className="flex flex-col gap-2">
               <div className="flex justify-between items-center w-full gap-2">
                 <Link href={`/tableaux?saison=${saison._id}`} passHref>
-                  <Button asChild size="sm" variant="ghost">
+                  <Button asChild size="sm" variant="outline">
                     <span>Tableaux</span>
                   </Button>
                 </Link>
                 <Link href={`/costumes?saison=${saison._id}`} passHref>
-                  <Button asChild size="sm" variant="ghost">
+                  <Button asChild size="sm" variant="outline">
                     <span>Costumes</span>
                   </Button>
                 </Link>
                 <Link href={`/users?saison=${saison._id}`} passHref>
-                  <Button asChild size="sm" variant="ghost">
+                  <Button asChild size="sm" variant="outline">
                     <span>Utilisateurs</span>
                   </Button>
                 </Link>

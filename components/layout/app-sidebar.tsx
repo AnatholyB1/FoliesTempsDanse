@@ -10,7 +10,6 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import {FileMusic, Glasses, Leaf, Proportions, Shirt, UserCheck} from "lucide-react";
-import ExcelUploader from "@/components/ui/excel-uploader";
 import Link from "next/link";
 
 type SidebarItem = {
@@ -81,7 +80,6 @@ export default function AppSidebar() {
         <SidebarGroup />
       </SidebarContent>
       <SidebarFooter>
-        <ExcelUploader />
       </SidebarFooter>
     </Sidebar>
   );

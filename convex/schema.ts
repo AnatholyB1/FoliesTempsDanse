@@ -1,5 +1,5 @@
-import { defineSchema, defineTable } from "convex/server";
-import { v } from "convex/values";
+import {defineSchema, defineTable} from "convex/server";
+import {v} from "convex/values";
 
 export default defineSchema({
   users: defineTable({
@@ -60,33 +60,33 @@ export default defineSchema({
     nom: v.string(),
     saisonId: v.id("saison"),
     description: v.optional(v.string()),
-  }),
+  }).index("by_saisonId", ["saisonId"]),
 
   choregraphies: defineTable({
     nom: v.string(),
-    tableauId: v.id("tableaux"),
+    tableauId: v.optional(v.id("tableaux")),
     musique: v.optional(v.string()),
     ordre: v.optional(v.number()),
     duree: v.optional(v.number()),
     description: v.optional(v.string()),
-  }),
+  }).index("by_tableauId", ["tableauId"]).index("by_tableauId_and_ordre", ["tableauId", "ordre"]),
 
   danseuses: defineTable({
     nom: v.string(),
     infos: v.optional(v.string()),
     saisonId: v.id("saison"),
     userId: v.optional(v.id("users")),
-  }),
+  }).index("by_saisonId", ["saisonId"]).index("by_userId", ["userId"]),
 
   choregraphie_danseuse: defineTable({
     choregraphieId: v.id("choregraphies"),
     danseuseId: v.id("danseuses"),
-  }),
+  }).index("by_choregraphieId", ["choregraphieId"]).index("by_danseuseId", ["danseuseId"]),
 
   assignations: defineTable({
     danseuseId: v.id("danseuses"),
     choregraphieId: v.id("choregraphies"),
     costumeIds: v.optional(v.array(v.id("costumes"))),
     accessoireIds: v.optional(v.array(v.id("accessoires"))),
-  }),
+  }).index("by_danseuseId", ["danseuseId"]).index("by_choregraphieId", ["choregraphieId"]),
 });
