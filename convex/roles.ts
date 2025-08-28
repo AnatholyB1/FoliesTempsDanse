@@ -1,51 +1,55 @@
-import { mutation, query } from "./_generated/server";
-import { v } from "convex/values";
+import {mutation, query} from "./_generated/server";
+import {v} from "convex/values";
 // CREATE
-export const createRole = mutation({
+export const createRoleChoregraphie = mutation({
   args: {
-    role: v.string(),
-    description: v.optional(v.string()),
+    choregraphieId: v.id("choregraphies"),
+    nom: v.string(),
+    danseuseId: v.optional(v.id("danseuses")),
   },
   handler: async (ctx, args) => {
-    return await ctx.db.insert("roles", args);
+    return await ctx.db.insert("roles_choregraphie", args);
   },
 });
 
-// READ (GET ONE)
-export const getRole = query({
-  args: { id: v.id("roles") },
+// READ (un rôle de chorégraphie)
+export const getRoleChoregraphie = query({
+  args: { id: v.id("roles_choregraphie") },
   handler: async (ctx, args) => {
     return await ctx.db.get(args.id);
   },
 });
 
-// READ (GET MANY)
-export const getRoles = query({
-  handler: async (ctx) => {
-    return await ctx.db.query("roles").collect();
+// READ (tous les rôles d'une chorégraphie)
+export const getRoleChoregraphieByChoregraphie = query({
+  args: { choregraphieId: v.id("choregraphies") },
+  handler: async (ctx, args) => {
+    return await ctx.db
+      .query("roles_choregraphie")
+      .withIndex("by_choregraphieId", (q) => q.eq("choregraphieId", args.choregraphieId))
+      .unique()
   },
 });
 
 // UPDATE
-export const updateRole = mutation({
+export const updateRoleChoregraphie = mutation({
   args: {
-    id: v.id("roles"),
-    data: v.object({
-      role: v.optional(v.string()),
-      description: v.optional(v.string()),
-    }),
+    id: v.id("roles_choregraphie"),
+    nom: v.optional(v.string()),
+    danseuseId: v.optional(v.id("danseuses")),
   },
-  handler: async (ctx, { id, data }) => {
+  handler: async (ctx, args) => {
+    const { id, ...data } = args;
     await ctx.db.patch(id, data);
     return await ctx.db.get(id);
   },
 });
 
 // DELETE
-export const deleteRole = mutation({
-  args: { id: v.id("roles") },
-  handler: async (ctx, { id }) => {
-    await ctx.db.delete(id);
-    return id;
+export const deleteRoleChoregraphie = mutation({
+  args: { id: v.id("roles_choregraphie") },
+  handler: async (ctx, args) => {
+    await ctx.db.delete(args.id);
+    return args.id;
   },
 });

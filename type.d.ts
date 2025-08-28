@@ -1,4 +1,4 @@
-import type { Database } from "@/convex/_generated/dataModel";
+import type {Database} from "@/convex/_generated/dataModel";
 
 // Types complets (retour API)
 export type Accessoire = Database["accessoires"]["document"];
@@ -12,6 +12,9 @@ export type Danseuse = Database["danseuses"]["document"];
 export type ChoregraphieDanseuse =
   Database["choregraphie_danseuse"]["document"];
 export type Assignation = Database["assignations"]["document"];
+export type GroupeChoregraphie = Database["groupes_choregraphie"]["document"];
+export type RoleChoregraphie = Database["roles_choregraphie"]["document"];
+export type DanseuseGroupe = Database["danseuses_by_groupe"]["document"];
 
 // Types pour la création (sans _id/_creationTime)
 export type CreateAccessoire = Omit<Accessoire, "_id" | "_creationTime">;

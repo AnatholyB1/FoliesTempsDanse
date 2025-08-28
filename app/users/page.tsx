@@ -67,7 +67,7 @@ export default function UsersPage() {
   });
   // Récupération des roles
   const {data: roles, isPending: rolesPending} = useQuery(
-    convexQuery(api.roles.getRoles, {})
+    convexQuery(api.users.getRoles, {})
   );
   //récupère les saisons
   const {data: saisons} = useQuery(convexQuery(api.saisons.getSaisons, {}));

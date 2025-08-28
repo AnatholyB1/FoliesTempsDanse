@@ -20,7 +20,7 @@ const accessoireSchema = z.object({
     tissu_motif: z.string().optional(),
     couleur: z.string().optional(),
     taille: z.union([z.string(), z.number()]).optional(),
-    quantite: z.union([z.string(), z.number()]).optional(),
+    quantite: z.number().optional(),
     divers: z.string().optional(),
     portant: z.coerce.number().optional(),
     photo_prise_par: z.string().optional(),

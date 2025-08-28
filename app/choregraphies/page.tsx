@@ -12,6 +12,7 @@ import {Badge} from "@/components/ui/badge";
 import {Id} from "@/convex/_generated/dataModel";
 import {ChoregraphieDeleteDialog, ChoregraphieFormDialog, ChoregraphieFormValues} from "./dialog";
 import {Choregraphie} from "@/type";
+import Link from "next/link";
 
 export default function ChoregraphiesPage() {
   const [open, setOpen] = useState<string>("");
@@ -78,6 +79,20 @@ export default function ChoregraphiesPage() {
     );
   }
 
+  if(!tableaux) {
+    return (
+      <div className="max-w-4xl mx-auto py-8 px-4">
+        <h1 className="text-3xl font-bold flex items-center gap-2 mb-8">
+          <FileMusic className="w-7 h-7 text-primary" /> Chorégraphies
+        </h1>
+        <p className="text-muted-foreground">Aucun tableau disponible. Veuillez créer un tableau pour ajouter des chorégraphies.</p>
+        <Button variant="default" className="mt-4" >
+          <Link href={"/tableaux"}>Tableaux</Link>
+        </Button>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto py-8 px-4">
       <div className="flex items-center justify-between mb-8">
@@ -114,6 +129,12 @@ export default function ChoregraphiesPage() {
               <div className="mb-2">{chore.description}</div>
             </CardContent>
             <CardFooter className="flex justify-end items-center w-full gap-2">
+              <Button
+                size="sm"
+                className="mr-2"
+              >
+                 <Link href={`/choregraphies/${chore._id}`}>Détails</Link>
+              </Button>
               <ChoregraphieFormDialog
                 open={open === `edit-${chore._id}`}
                 onOpenChange={(open) => setOpen(open ? `edit-${chore._id}` : "")}

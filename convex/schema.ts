@@ -29,11 +29,11 @@ export default defineSchema({
     tissu_motif: v.optional(v.string()),
     couleur: v.optional(v.string()),
     taille: v.optional(v.union(v.number(), v.string())),
-    quantite: v.optional(v.union(v.number(), v.string())),
+    quantite: v.optional(v.number()),
     emplacement: v.optional(v.string()),
     portant: v.optional(v.number()),
     photo_prise_par: v.optional(v.string()),
-  }),
+  }).index("by_quantite", ["quantite"]),
 
   accessoires: defineTable({
     photo: v.optional(v.string()),
@@ -43,11 +43,11 @@ export default defineSchema({
     tissu_motif: v.optional(v.string()),
     couleur: v.optional(v.string()),
     taille: v.optional(v.union(v.number(), v.string())),
-    quantite: v.optional(v.union(v.number(), v.string())),
+    quantite: v.optional(v.number()),
     divers: v.optional(v.string()),
     portant: v.optional(v.number()),
     photo_prise_par: v.optional(v.string()),
-  }),
+  }).index("by_quantite", ["quantite"]),
 
   saison: defineTable({
     nom: v.string(),
@@ -78,15 +78,39 @@ export default defineSchema({
     userId: v.optional(v.id("users")),
   }).index("by_saisonId", ["saisonId"]).index("by_userId", ["userId"]),
 
-  choregraphie_danseuse: defineTable({
-    choregraphieId: v.id("choregraphies"),
-    danseuseId: v.id("danseuses"),
-  }).index("by_choregraphieId", ["choregraphieId"]).index("by_danseuseId", ["danseuseId"]),
-
   assignations: defineTable({
     danseuseId: v.id("danseuses"),
-    choregraphieId: v.id("choregraphies"),
+    parentChoregraphieId: v.id("choregraphies"),
+    choregraphieId: v.union(v.id("roles_choregraphie"), v.id("groupes_choregraphie")),
     costumeIds: v.optional(v.array(v.id("costumes"))),
     accessoireIds: v.optional(v.array(v.id("accessoires"))),
-  }).index("by_danseuseId", ["danseuseId"]).index("by_choregraphieId", ["choregraphieId"]),
+  })
+    .index("by_danseuseId_and_choregraphieId", ["danseuseId", "choregraphieId"])
+    .index("by_choregraphieId", ["choregraphieId"])
+    .index("by_danseuseId", ["danseuseId"])
+    .index("by_parentChoregraphieId", ["parentChoregraphieId"])
+    .index("by_parentChoregraphieId_danseuseId", [ "danseuseId", "parentChoregraphieId"]),
+
+
+
+  roles_choregraphie: defineTable({
+    choregraphieId: v.id("choregraphies"),
+    nom: v.string(),
+    danseuseId: v.optional(v.id("danseuses")),
+  }).index("by_choregraphieId", ["choregraphieId"])
+    .index("by_danseuseId", ["danseuseId"])
+    .index("by_choregraphieId_and_danseuseId", ["choregraphieId", "danseuseId"]),
+
+  groupes_choregraphie: defineTable({
+    choregraphieId: v.id("choregraphies"),
+    nom: v.string(),
+  }).index("by_choregraphieId", ["choregraphieId"]),
+
+  danseuses_by_groupe: defineTable({
+    groupeId: v.id("groupes_choregraphie"),
+    danseuseId: v.id("danseuses"),
+  }).index("by_groupeId", ["groupeId"])
+    .index("by_danseuseId", ["danseuseId"])
+    .index("by_groupeId_and_danseuseId", ["groupeId", "danseuseId"])
+
 });
