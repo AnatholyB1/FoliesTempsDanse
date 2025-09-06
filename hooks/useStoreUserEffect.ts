@@ -1,39 +1,45 @@
 "use client";
 import {useUser} from "@clerk/clerk-react";
-import {useConvexAuth, useMutation} from "convex/react";
-import {useEffect, useState} from "react";
+import {useConvexAuth} from "convex/react";
+import {useEffect} from "react";
 import {api} from "@/convex/_generated/api";
-import {Id} from "@/convex/_generated/dataModel";
+import {useMutation, useQuery} from "@tanstack/react-query";
+import {convexQuery, useConvexMutation} from "@convex-dev/react-query";
+import Cookies from "js-cookie";
 
 export function useStoreUserEffect() {
-  const { isLoading, isAuthenticated } = useConvexAuth();
-  const { user } = useUser();
-  // When this state is set we know the server
-  // has stored the user.
-  const [userId, setUserId] = useState<Id<"users"> | null>(null);
-  const storeUser = useMutation(api.users.store);
-  // Call the `storeUser` mutation function to store
-  // the current user in the `users` table and return the `Id` value.
-  useEffect(() => {
-    // If the user is not logged in don't do anything
-    if (!isAuthenticated) {
-      return;
-    }
-    // Store the user in the database.
-    // Recall that `storeUser` gets the user information via the `auth`
-    // object on the server. You don't need to pass anything manually here.
-    async function createUser() {
-      const id = await storeUser();
-      setUserId(id);
-    }
-    createUser();
-    return () => setUserId(null);
-    // Make sure the effect reruns if the user logs in with
-    // a different identity
-  }, [isAuthenticated, storeUser, user?.id]);
-  // Combine the local state with the state from context
-  return {
-    isLoading: isLoading || (isAuthenticated && userId === null),
-    isAuthenticated: isAuthenticated && userId !== null,
-  };
+    const {isLoading, isAuthenticated} = useConvexAuth();
+    const {user} = useUser();
+    const {mutate: storeUser, data: userID} = useMutation({mutationFn: useConvexMutation(api.users.store)});
+    const {data : role } = useQuery({
+        ...convexQuery(api.users.getRoleByCurrentUser, {}),
+        enabled: isAuthenticated && userID !== null
+    });
+
+    useEffect(
+        () => {
+            if (role && role.role)
+            {
+                console.log(role);
+                Cookies.set("user_role", role.role, {
+                    expires: 1, // expire dans 1 jour
+                    secure: process.env.NODE_ENV === "production",
+                    sameSite: "lax"
+                });
+            }
+        },
+        [role]
+    )
+
+    useEffect(() => {
+        if (!isAuthenticated) {
+            return;
+        }
+        storeUser({})
+    }, [isAuthenticated, storeUser, user?.id]);
+
+    return {
+        isLoading: isLoading || (isAuthenticated && userID === null),
+        isAuthenticated: isAuthenticated && userID !== null,
+    };
 }

@@ -142,7 +142,7 @@ export function ChoregraphieDetailProvider({params, children}: Props) {
 
 
     // danseuse
-    const {data: danseusesLibres} = useQuery(convexQuery(api.users.getDanseusesBySaison, {choreId: choregraphieId}));
+    const {data: danseusesLibres} = useQuery({...convexQuery(api.users.getDanseusesBySaison, {choreId: choregraphieId}), enabled : !!choregraphieId});
     const {mutate: assignDanseuseToRole} = useMutation({
             mutationFn: useConvexMutation(api.choregraphies.assignDanseuseToRole),
             onSuccess: () => {
