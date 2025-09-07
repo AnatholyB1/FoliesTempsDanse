@@ -59,7 +59,7 @@ export default function RootLayout({
     >
     <ClerkProvider>
       <ConvexClientProvider>
-        <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+        <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
           <SearchProvider>
             <SidebarProvider defaultOpen={false}>
               <AppSidebar/>

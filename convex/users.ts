@@ -180,7 +180,26 @@ export const getDanseuse = query({
             throw new Error("Danseuse non trouvée");
         }
         const user = await ctx.db.get(danseuse.userId as Id<"users">);
-        return {...danseuse, user};
+        const assignations = await ctx.db
+            .query("assignations")
+            .filter((q) => q.eq(q.field("danseuseId"), danseuse
+                ._id))
+            .collect();
+        const costumes = await Promise.all(
+            assignations.flatMap((assignation) =>
+                (assignation.costumeIds || []).map((costumeId) =>
+                    ctx.db.get(costumeId)
+                )
+            )
+        );
+        const accessoires = await Promise.all(
+            assignations.flatMap((assignation) =>
+                (assignation.accessoireIds || []).map((accessoireId) =>
+                    ctx.db.get(accessoireId)
+                )
+            )
+        );
+        return {...danseuse, user, costumes, accessoires};
     }
 });
 // récupère les danseuses par saison avec leur score

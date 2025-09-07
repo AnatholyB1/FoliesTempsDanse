@@ -5,7 +5,7 @@ import {v} from "convex/values";
 export const createGroupe = mutation({
   args: {
     choregraphieId: v.id("choregraphies"),
-    nom: v.string(),
+    nom: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     return await ctx.db.insert("groupes_choregraphie", {

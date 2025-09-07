@@ -103,7 +103,7 @@ export default defineSchema({
 
   groupes_choregraphie: defineTable({
     choregraphieId: v.id("choregraphies"),
-    nom: v.string(),
+    nom: v.optional(v.string()),
   }).index("by_choregraphieId", ["choregraphieId"]),
 
   danseuses_by_groupe: defineTable({
