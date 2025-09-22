@@ -71,6 +71,7 @@ function DataTableProvider<T>({
             rowSelection,
             pagination,
         },
+        autoResetPageIndex: false,
     });
 
 

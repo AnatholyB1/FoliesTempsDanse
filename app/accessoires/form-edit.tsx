@@ -20,7 +20,7 @@ const accessoireSchema = z.object({
     tissu_motif: z.string().optional(),
     couleur: z.string().optional(),
     taille: z.union([z.string(), z.number()]).optional(),
-    quantite: z.number().optional(),
+    quantite: z.number().min(0).optional(),
     divers: z.string().optional(),
     portant: z.coerce.number().optional(),
     photo_prise_par: z.string().optional(),
@@ -78,7 +78,7 @@ export default function AccessoireEditForm({accessoire, onEdit}: Props) {
             tissu_motif: accessoire.tissu_motif ?? "",
             couleur: accessoire.couleur ?? "",
             taille: accessoire.taille ?? "",
-            quantite: accessoire.quantite ?? "",
+            quantite: accessoire.quantite ?? undefined,
             divers: accessoire.divers ?? "",
             portant: accessoire.portant ?? undefined,
             photo_prise_par: accessoire.photo_prise_par ?? "",
@@ -96,7 +96,6 @@ export default function AccessoireEditForm({accessoire, onEdit}: Props) {
         // 1. Génère l’URL d’upload
         const uploadUrlData =  await generateUploadUrl({});
 
-        console.log(uploadUrlData);
 
         // 2. Upload du fichier
         const uploadUrl = uploadUrlData?.uploadUrl;
@@ -224,7 +223,21 @@ export default function AccessoireEditForm({accessoire, onEdit}: Props) {
                         <FormItem>
                             <FormLabel>Quantité</FormLabel>
                             <FormControl>
-                                <Input {...field} />
+                                <Input
+                                    type="number"
+                                    {...field}
+                                    min={0}
+                                    step={1}
+                                    value={field.value === undefined || field.value === null ? "" : String(field.value)}
+                                    onChange={(e) => {
+                                        const v = e.target.value.trim();
+                                        if (v === "") {
+                                        field.onChange("")      // permet d'effacer totalement
+                                        } else if (/^\d+$/.test(v)) {
+                                        field.onChange(Number(v));      // convertit seulement si valide
+                                        }
+                                    }}
+                                />
                             </FormControl>
                             <FormMessage/>
                         </FormItem>

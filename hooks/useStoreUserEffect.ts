@@ -20,7 +20,6 @@ export function useStoreUserEffect() {
         () => {
             if (role && role.role)
             {
-                console.log(role);
                 Cookies.set("user_role", role.role, {
                     expires: 1, // expire dans 1 jour
                     secure: process.env.NODE_ENV === "production",

@@ -25,7 +25,7 @@ export default clerkMiddleware(async (auth, req) => {
         await auth.protect();
 
         const userRole = req.cookies.get("user_role")?.value;
-        console.log(isAdminRoute(req));
+    
         if (isAdminRoute(req) && userRole !== "admin") {
             return NextResponse.redirect(new URL("/403", req.url));
         }

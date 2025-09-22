@@ -20,7 +20,7 @@ const costumeSchema = z.object({
     tissu_motif: z.string().optional(),
     couleur: z.string().optional(),
     taille: z.union([z.string(), z.number()]).optional(),
-    quantite: z.number().optional(),
+    quantite: z.number().min(0, {message: "La quantité doit être au moins 0"}).optional(),
     emplacement: z.string().optional(),
     portant: z.coerce.number().optional(),
     photo_prise_par: z.string().optional(),
@@ -84,7 +84,7 @@ export default function CostumeEditForm({ costume , onEdit }: Props) {
             tissu_motif: costume.tissu_motif ?? "",
             couleur: costume.couleur ?? "",
             taille: costume.taille ?? "",
-            quantite: costume.quantite ?? "",
+            quantite: costume.quantite ?? undefined,
             emplacement: costume.emplacement ?? "",
             portant: costume.portant ?? undefined,
             photo_prise_par: costume.photo_prise_par ?? "",
@@ -102,7 +102,7 @@ export default function CostumeEditForm({ costume , onEdit }: Props) {
         // 1. Génère l’URL d’upload
         const uploadUrlData =  await generateUploadUrl({});
 
-        console.log(uploadUrlData);
+    
 
         // 2. Upload du fichier
         const uploadUrl = uploadUrlData?.uploadUrl;
@@ -230,7 +230,21 @@ export default function CostumeEditForm({ costume , onEdit }: Props) {
                         <FormItem>
                             <FormLabel>Quantité</FormLabel>
                             <FormControl>
-                                <Input {...field} />
+                                <Input
+                                    type="number"
+                                    {...field}
+                                    min={0}
+                                    step={1}
+                                    value={field.value === undefined || field.value === null ? "" : String(field.value)}
+                                    onChange={(e) => {
+                                        const v = e.target.value.trim();
+                                        if (v === "") {
+                                        field.onChange("")      // permet d'effacer totalement
+                                        } else if (/^\d+$/.test(v)) {
+                                        field.onChange(Number(v));      // convertit seulement si valide
+                                        }
+                                    }}
+                                />
                             </FormControl>
                             <FormMessage />
                         </FormItem>

@@ -173,7 +173,7 @@ function ChoreRoleManagement() {
             <Label>Nom du rôle</Label>
             <Input onChange={(e) => handleUpdateRole(e.target.value)} value={roleName}/>
             <Label>Danseuse assignée</Label>
-            {role.danseuseId && danseuse ? (
+            {role?.danseuseId && danseuse ? (
                 <div
                     className="flex items-center text-sm justify-between gap-2 px-3 py-2 bg-primary text-accent rounded-lg cursor-pointer hover:scale-[90%]">
                     <div onClick={() => setSelectedEntity("danseuse")} className="flex items-center gap-2 ">
@@ -234,7 +234,7 @@ function ChoreInterGroupeManagement() {
         return (
             <div className={" w-full border border-primary bg-accent rounded-lg p-6 flex flex-col gap-4 "}>
                 <div className={"justify-between flex flex-row"}>
-                    <h2 className="text-lg font-semibold">Gestion du rôle</h2>
+                    <h2 className="text-lg font-semibold">Gestion du groupe</h2>
                     <div className={clsx("flex items-center gap-2", statusGroupe.color)}>
                         {statusGroupe.icon}
                         <span className="text-xs ">{statusGroupe.text}</span>
