@@ -20,7 +20,7 @@ const costumeSchema = z.object({
     tissu_motif: z.string().optional(),
     couleur: z.string().optional(),
     taille: z.union([z.string(), z.number()]).optional(),
-    quantite: z.union([z.string(), z.number()]).optional(),
+    quantite: z.number().min(0, { message: "La quantité doit être au moins 0" }).optional(),
     emplacement: z.string().optional(),
     portant: z.coerce.number().optional(),
     photo_prise_par: z.string().optional(),
@@ -80,7 +80,7 @@ export default function CostumeNewForm({ onCreated, onClose }: Props) {
             tissu_motif: "",
             couleur: "",
             taille: "",
-            quantite: "",
+            quantite: undefined,
             emplacement: "",
             portant: undefined,
             photo_prise_par: "",
@@ -218,19 +218,33 @@ export default function CostumeNewForm({ onCreated, onClose }: Props) {
                             </FormItem>
                         )}
                     />
-                    <FormField
-                        control={form.control}
-                        name="quantite"
-                        render={({ field }) => (
-                            <FormItem className="flex-1">
-                                <FormLabel>Quantité</FormLabel>
-                                <FormControl>
-                                    <Input {...field} placeholder="Nombre" />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+                <FormField
+                    control={form.control}
+                    name="quantite"
+                    render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Quantité</FormLabel>
+                            <FormControl>
+                                <Input
+                                    type="number"
+                                    {...field}
+                                    min={0}
+                                    step={1}
+                                    value={field.value === undefined || field.value === null ? "" : String(field.value)}
+                                    onChange={(e) => {
+                                        const v = e.target.value.trim();
+                                        if (v === "") {
+                                        field.onChange("")      // permet d'effacer totalement
+                                        } else if (/^\d+$/.test(v)) {
+                                        field.onChange(Number(v));      // convertit seulement si valide
+                                        }
+                                    }}
+                                />
+                            </FormControl>
+                            <FormMessage />
+                        </FormItem>
+                    )}
+                />
                 </div>
                 <FormField
                     control={form.control}

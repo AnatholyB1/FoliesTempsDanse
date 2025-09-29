@@ -11,7 +11,7 @@ export const createAccessoire = mutation({
     tissu_motif: v.optional(v.string()),
     couleur: v.optional(v.string()),
     taille: v.optional(v.union(v.number(), v.string())),
-    quantite: v.optional(v.number()),
+    quantite:  v.optional(v.number()),
     divers: v.optional(v.string()),
     portant: v.optional(v.number()),
     photo_prise_par: v.optional(v.string()),

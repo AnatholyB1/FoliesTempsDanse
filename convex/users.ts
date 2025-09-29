@@ -293,20 +293,39 @@ export const getDanseusesBySaison = query({
                     }
 
                     // Précédente
-                    const previousChore = await ctx.db
-                        .query("choregraphies")
-                        .withIndex("by_tableauId_and_ordre", (q) => q.eq("tableauId", choregraphie.tableauId).lt("ordre", choregraphie.ordre))
-                        .unique();
+                    const prevList = await ctx.db
+                    .query("choregraphies")
+                    .withIndex("by_tableauId_and_ordre", (q) =>
+                        q
+                        .eq("tableauId", choregraphie.tableauId)
+                        .lt("ordre", choregraphie.ordre)
+                    )
+                    .collect();
+
+                    const previousChore =
+                    prevList.sort(
+                        (a, b) => (b.ordre ?? Number.NEGATIVE_INFINITY) - (a.ordre ?? Number.NEGATIVE_INFINITY)
+                    )[0] ?? null;
+
                     if (await checkPresence(previousChore?._id)) score += 6;
 
                     // Courante
                     if (await checkPresence(choregraphie._id)) score += 6;
 
                     // Suivante
-                    const nextChore = await ctx.db
-                        .query("choregraphies")
-                        .withIndex("by_tableauId_and_ordre", (q) => q.eq("tableauId", choregraphie.tableauId).gt("ordre", choregraphie.ordre))
-                        .unique();
+                    const nextList = await ctx.db
+                    .query("choregraphies")
+                    .withIndex("by_tableauId_and_ordre", (q) =>
+                        q
+                        .eq("tableauId", choregraphie.tableauId)
+                        .gt("ordre", choregraphie.ordre)
+                    )
+                    .collect();
+
+                    const nextChore =
+                    nextList.sort(
+                        (a, b) => (a.ordre ?? Number.POSITIVE_INFINITY) - (b.ordre ?? Number.POSITIVE_INFINITY)
+                    )[0] ?? null;
                     if (await checkPresence(nextChore?._id)) score += 6;
 
                     const assignation = await ctx.db
@@ -380,5 +399,155 @@ export const getRoleByCurrentUser = query({
     }
 );
 
+export const myStats = query({
+  args: {},
+  handler: async (ctx) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return { status: "signed_out" as const };
+
+    const user = await ctx.db
+      .query("users")
+      .withIndex("by_token", (q) => q.eq("tokenIdentifier", identity.tokenIdentifier))
+      .unique();
+    if (!user) return { status: "no_user" as const };
+
+    // Saison active + danseuse liée à ce user (priorité à la saison active)
+    const saisons = await ctx.db.query("saison").collect();
+    const saisonActive = saisons.find((s) => s.active) ?? saisons[0] ?? null;
+
+    const danseuses = await ctx.db
+      .query("danseuses")
+      .withIndex("by_userId", (q) => q.eq("userId", user._id))
+      .collect();
+    if (danseuses.length === 0) return { status: "no_danseuse" as const };
+
+    const danseuse =
+      (saisonActive && danseuses.find((d) => d.saisonId === saisonActive._id)) ??
+      danseuses[0];
+
+    // Assignations de cette danseuse
+    const assignations = await ctx.db
+      .query("assignations")
+      .withIndex("by_danseuseId", (q) => q.eq("danseuseId", danseuse._id))
+      .collect();
+
+    if (assignations.length === 0) {
+      return {
+        status: "ok" as const,
+        saison: saisonActive ? { _id: saisonActive._id, nom: saisonActive.nom, annee: saisonActive.annee } : null,
+        danseuse: { _id: danseuse._id, nom: danseuse.nom },
+        stats: {
+          chorees: 0,
+          costumesUniques: 0,
+          accessoiresUniques: 0,
+          dureeTotaleSeconds: 0,
+          tempsMoyenEntrePassagesSeconds: null as number | null,
+          choreesParTableau: [] as { tableauId: Id<"tableaux"> | null; tableauNom: string; count: number }[],
+        },
+      };
+    }
+
+    // Parents chorégraphies
+    const parentIds = Array.from(new Set(assignations.map((a) => a.parentChoregraphieId)));
+    const parentDocs = await Promise.all(parentIds.map((id) => ctx.db.get(id)));
+    const parents = parentDocs.filter(Boolean) as NonNullable<typeof parentDocs[number]>[];
+
+    // Tableaux des parents
+    const tableauIds = Array.from(
+      new Set(parents.map((p) => p.tableauId).filter(Boolean) as Id<"tableaux">[])
+    );
+    const tableauDocs = await Promise.all(tableauIds.map((id) => ctx.db.get(id)));
+    const tableauById = new Map(tableauDocs.filter(Boolean).map((t) => [t!._id, t!]));
+
+    // Counts basiques
+    const chorees = parents.length;
+    const dureeTotaleSeconds = parents.reduce((acc, p) => acc + (p.duree ?? 0), 0);
+
+    const costumesUniques = Array.from(
+      new Set(assignations.flatMap((a) => a.costumeIds ?? []).map((id) => id.toString()))
+    ).length;
+
+    const accessoiresUniques = Array.from(
+      new Set(assignations.flatMap((a) => a.accessoireIds ?? []).map((id) => id.toString()))
+    ).length;
+
+    // Chorégraphies par tableau (sur mes parents)
+    const countByTableau = new Map<string, { tableauId: Id<"tableaux"> | null; tableauNom: string; count: number }>();
+    for (const p of parents) {
+      const key = p.tableauId ? p.tableauId.toString() : "no_tableau";
+      const entry =
+        countByTableau.get(key) ??
+        {
+          tableauId: p.tableauId ?? null,
+          tableauNom: p.tableauId ? tableauById.get(p.tableauId)?.nom ?? "Tableau" : "Sans tableau",
+          count: 0,
+        };
+      entry.count += 1;
+      countByTableau.set(key, entry);
+    }
+    const choreesParTableau = Array.from(countByTableau.values()).sort((a, b) =>
+      a.tableauNom.localeCompare(b.tableauNom)
+    );
+
+    // Temps moyen entre deux passages (calculé par tableau, via les durées des chorées intermédiaires)
+    // Étapes:
+    // - pour chaque tableau impliqué: récupérer toutes les chorégraphies du tableau (durée + ordre)
+    // - trier par ordre
+    // - lister mes chorégraphies (parents) dans ce tableau, trier par ordre
+    // - pour chaque paire consécutive: sommer la durée des chorégraphies dont l'ordre est strictement entre les deux
+    // - collecter tous les gaps et faire une moyenne globale
+    const gapDurations: number[] = [];
+
+    for (const tid of tableauIds) {
+      const allInTableau = await ctx.db
+        .query("choregraphies")
+        .withIndex("by_tableauId", (q) => q.eq("tableauId", tid))
+        .collect();
+
+      // Index par ordre (on garde tout, mais on traitera ordre null en fin)
+      const allSorted = allInTableau
+        .filter((c) => typeof c.ordre === "number")
+        .sort((a, b) => (a.ordre ?? 0) - (b.ordre ?? 0));
+
+      const myInTableau = parents
+        .filter((p) => p.tableauId && p.tableauId === tid && typeof p.ordre === "number")
+        .sort((a, b) => (a.ordre ?? 0) - (b.ordre ?? 0));
+
+      if (myInTableau.length < 2) continue;
+
+      // Pré-calcul: cumul des durées entre positions pour accélérer (optionnel vu les tailles)
+      // Ici: simple somme entre deux ordres
+      for (let i = 0; i < myInTableau.length - 1; i++) {
+        const o1 = myInTableau[i].ordre as number;
+        const o2 = myInTableau[i + 1].ordre as number;
+
+        if (o2 <= o1) continue;
+
+        const between = allSorted.filter((c) => (c.ordre as number) > o1 && (c.ordre as number) < o2);
+        const gap = between.reduce((acc, c) => acc + (c.duree ?? 0), 0);
+        gapDurations.push(gap);
+      }
+    }
+
+    const tempsMoyenEntrePassagesSeconds =
+      gapDurations.length > 0
+        ? Math.round(gapDurations.reduce((a, b) => a + b, 0) / gapDurations.length)
+        : null;
+
+    return {
+      status: "ok" as const,
+      saison: saisonActive ? { _id: saisonActive._id, nom: saisonActive.nom, annee: saisonActive.annee } : null,
+      danseuse: { _id: danseuse._id, nom: danseuse.nom },
+      stats: {
+        chorees,
+        costumesUniques,
+        accessoiresUniques,
+        dureeTotaleSeconds,
+        tempsMoyenEntrePassagesSeconds,
+        choreesParTableau,
+      },
+    };
+  },
+});
 
 

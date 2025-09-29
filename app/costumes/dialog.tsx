@@ -63,7 +63,7 @@ export function CreateCostumeDialog({ open, onOpenChange, onEdit, trigger = fals
             )}
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Création</DialogTitle>
+                    <DialogTitle>Création d'un costume</DialogTitle>
                     <DialogDescription>
                         Créez un nouveau costume. Assurez-vous que toutes les informations sont correctes avant de sauvegarder.
                     </DialogDescription>
