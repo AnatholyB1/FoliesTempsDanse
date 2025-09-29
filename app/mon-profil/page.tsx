@@ -24,7 +24,7 @@ type Props = {
   stats: Stats;
 };
 
-export function EspaceDanseuseStatsCard({ danseuse, saison, stats }: Props) {
+function EspaceDanseuseStatsCard({ danseuse, saison, stats }: Props) {
   const maxBar = Math.max(1, ...stats.choreesParTableau.map((t) => t.count));
   const totalChorees = stats.choreesParTableau.reduce((a, b) => a + b.count, 0);
 
