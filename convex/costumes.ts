@@ -14,6 +14,7 @@ export const createCostume = mutation({
         quantite:  v.optional(v.number()),
         emplacement: v.optional(v.string()),
         portant: v.optional(v.number()),
+        divers: v.optional(v.string()),
         photo_prise_par: v.optional(v.string()),
     },
     handler: async (ctx, args) => {
@@ -51,6 +52,7 @@ export const updateCostume = mutation({
             quantite: v.optional(v.number()),
             emplacement: v.optional(v.string()),
             portant: v.optional(v.number()),
+            divers: v.optional(v.string()),
             photo_prise_par: v.optional(v.string()),
         }),
     },
@@ -66,6 +68,20 @@ export const deleteCostume = mutation({
     handler: async (ctx, { id }) => {
         await ctx.db.delete(id);
         return id;
+    },
+});
+
+// DUPLICATE
+export const duplicateCostume = mutation({
+    args: { id: v.id("costumes") },
+    handler: async (ctx, { id }) => {
+        const original = await ctx.db.get(id);
+        if (!original) throw new Error("Costume introuvable");
+        const { _id, _creationTime, ...fields } = original;
+        return await ctx.db.insert("costumes", {
+            ...fields,
+            descriptif: `Copie de ${fields.descriptif ?? ""}`.trim(),
+        });
     },
 });
 

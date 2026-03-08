@@ -1,38 +1,57 @@
-import {mutation, query} from "./_generated/server";
+﻿import {mutation, query} from "./_generated/server";
 import {v} from "convex/values";
 // CREATE
-export const createRoleChoregraphie = mutation({
+export const createRoleTableau = mutation({
   args: {
-    choregraphieId: v.id("choregraphies"),
+    tableauId: v.id("choregraphies"),
     nom: v.string(),
     danseuseId: v.optional(v.id("danseuses")),
   },
   handler: async (ctx, args) => {
-    return await ctx.db.insert("roles_choregraphie", args);
+    const { tableauId, ...rest } = args;
+    return await ctx.db.insert("roles_choregraphie", { choregraphieId: tableauId, ...rest });
   },
 });
 
-// READ (un rôle de chorégraphie)
-export const getRoleChoregraphie = query({
+// READ (un role de tableau)
+export const getRoleTableau = query({
   args: { id: v.id("roles_choregraphie") },
   handler: async (ctx, args) => {
     return await ctx.db.get(args.id);
   },
 });
 
-// READ (tous les rôles d'une chorégraphie)
-export const getRoleChoregraphieByChoregraphie = query({
-  args: { choregraphieId: v.id("choregraphies") },
+// READ (tous les roles d un tableau)
+export const getRoleTableauByTableau = query({
+  args: { tableauId: v.id("choregraphies") },
   handler: async (ctx, args) => {
     return await ctx.db
       .query("roles_choregraphie")
-      .withIndex("by_choregraphieId", (q) => q.eq("choregraphieId", args.choregraphieId))
-      .unique()
+      .withIndex("by_choregraphieId", (q) => q.eq("choregraphieId", args.tableauId))
+      .collect();
+  },
+});
+
+// READ (tous les roles d un tableau avec la danseuse embarquée)
+export const getRolesWithDanseuses = query({
+  args: { tableauId: v.id("choregraphies") },
+  handler: async (ctx, { tableauId }) => {
+    const roles = await ctx.db
+      .query("roles_choregraphie")
+      .withIndex("by_choregraphieId", (q) => q.eq("choregraphieId", tableauId))
+      .collect();
+    return await Promise.all(roles.map(async (role) => {
+      if (!role.danseuseId) return {...role, danseuse: undefined};
+      const danseuse = await ctx.db.get(role.danseuseId);
+      if (!danseuse) return {...role, danseuse: undefined};
+      const user = danseuse.userId ? await ctx.db.get(danseuse.userId) : undefined;
+      return {...role, danseuse: {...danseuse, user}};
+    }));
   },
 });
 
 // UPDATE
-export const updateRoleChoregraphie = mutation({
+export const updateRoleTableau = mutation({
   args: {
     id: v.id("roles_choregraphie"),
     nom: v.optional(v.string()),
@@ -46,7 +65,7 @@ export const updateRoleChoregraphie = mutation({
 });
 
 // DELETE
-export const deleteRoleChoregraphie = mutation({
+export const deleteRoleTableau = mutation({
   args: { id: v.id("roles_choregraphie") },
   handler: async (ctx, args) => {
     await ctx.db.delete(args.id);

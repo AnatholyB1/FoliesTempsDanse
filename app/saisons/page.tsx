@@ -4,7 +4,7 @@ import Link from "next/link";
 import {Card, CardContent, CardFooter, CardHeader, CardTitle,} from "@/components/ui/card";
 import {Button} from "@/components/ui/button";
 import {toast} from "sonner";
-import {CheckCircle2, Leaf, Loader2, Pencil, Trash2} from "lucide-react";
+import {CheckCircle2, Copy, Leaf, Loader2, Pencil, Trash2} from "lucide-react";
 import {SaisonDeleteDialog, SaisonFormDialog, SaisonFormValues,} from "./dialog";
 import {useMutation, useQuery} from "@tanstack/react-query";
 import {convexQuery, useConvexMutation} from "@convex-dev/react-query";
@@ -48,6 +48,11 @@ export default function SaisonsPage() {
       toast.error("Erreur lors de la suppression de la saison");
     },
   });
+  const { mutate: duplicate, isPending: duplicatePending } = useMutation({
+    mutationFn: useConvexMutation(api.saisons.duplicateSaison),
+    onSuccess: () => toast.success("Saison dupliquée"),
+    onError: () => toast.error("Erreur lors de la duplication"),
+  });
 
   // Handlers CRUD (à connecter à Convex)
   const handleActivate = async (id: Id<"saison">) => {
@@ -65,10 +70,17 @@ export default function SaisonsPage() {
   if (dataPending) {
     return (
       <div className="max-w-4xl mx-auto py-8 px-4">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold flex items-center gap-2 mr-2">
-            <Leaf className="w-7 h-7 text-primary" /> Saisons
-          </h1>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-3xl font-bold flex items-center gap-2" style={{ fontFamily: "var(--font-playfair)" }}>
+              <Leaf className="w-7 h-7 text-primary" /> Saisons
+            </h1>
+            <div className="flex items-center gap-2 mt-2" aria-hidden>
+              <span className="h-px w-10 rounded-full" style={{ background: "var(--gold)" }} />
+              <span className="w-1 h-1 rounded-full" style={{ background: "var(--gold)" }} />
+              <span className="h-px w-10 rounded-full" style={{ background: "var(--gold)" }} />
+            </div>
+          </div>
           <Skeleton className="w-32 h-10 rounded-md" />
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -107,9 +119,16 @@ export default function SaisonsPage() {
   return (
     <div className="max-w-4xl mx-auto py-8 px-4">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold flex items-center gap-2 mr-2">
-          <Leaf className="w-7 h-7 text-primary" /> Saisons
-        </h1>
+        <div>
+          <h1 className="text-3xl font-bold flex items-center gap-2" style={{ fontFamily: "var(--font-playfair)" }}>
+            <Leaf className="w-7 h-7 text-primary" /> Saisons
+          </h1>
+          <div className="flex items-center gap-2 mt-2" aria-hidden>
+            <span className="h-px w-10 rounded-full" style={{ background: "var(--gold)" }} />
+            <span className="w-1 h-1 rounded-full" style={{ background: "var(--gold)" }} />
+            <span className="h-px w-10 rounded-full" style={{ background: "var(--gold)" }} />
+          </div>
+        </div>
         <SaisonFormDialog
           open={open === "create"}
           onOpenChange={(open) => {
@@ -130,7 +149,7 @@ export default function SaisonsPage() {
         {saisons?.map((saison) => (
           <Card
             key={saison._id}
-            className={`relative ${saison.active ? "border-primary shadow-lg" : "border-border"}`}
+            className={`relative transition-all duration-300 hover:-translate-y-0.5 ${saison.active ? "border-primary shadow-md" : "border-border/60 shadow-sm hover:shadow-md"}`}
           >
             <CardHeader className="flex flex-row items-center gap-2">
               <CardTitle className="flex items-center gap-2">
@@ -150,9 +169,9 @@ export default function SaisonsPage() {
             </CardContent>
             <CardFooter className="flex flex-col gap-2">
               <div className="flex justify-between items-center w-full gap-2">
-                <Link href={`/tableaux?saison=${saison._id}`} passHref>
+                <Link href={`/blocs?saison=${saison._id}`} passHref>
                   <Button asChild size="sm" variant="outline">
-                    <span>Tableaux</span>
+                    <span>Blocs</span>
                   </Button>
                 </Link>
                 <Link href={`/costumes?saison=${saison._id}`} passHref>
@@ -181,6 +200,15 @@ export default function SaisonsPage() {
                     )}
                   </Button>
                 )}
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => duplicate({ id: saison._id })}
+                  disabled={duplicatePending}
+                  title="Dupliquer"
+                >
+                  <Copy className="w-4 h-4" />
+                </Button>
                 <SaisonFormDialog
                   open={open === `edit-${saison._id}`}
                   onOpenChange={(open) => {

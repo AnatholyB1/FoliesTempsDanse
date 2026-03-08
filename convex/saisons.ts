@@ -64,3 +64,18 @@ export const deleteSaison = mutation({
     return id;
   },
 });
+
+// DUPLICATE
+export const duplicateSaison = mutation({
+  args: { id: v.id("saison") },
+  handler: async (ctx, { id }) => {
+    const original = await ctx.db.get(id);
+    if (!original) throw new Error("Saison introuvable");
+    const { _id, _creationTime, ...fields } = original;
+    return await ctx.db.insert("saison", {
+      ...fields,
+      nom: `Copie de ${fields.nom}`,
+      active: false,
+    });
+  },
+});

@@ -1,116 +1,112 @@
 "use client";
-import {Badge} from "@/components/ui/badge";
-import {Card, CardContent, CardFooter, CardHeader, CardTitle} from "@/components/ui/card";
-import {Button} from "@/components/ui/button";
-import {toast} from "sonner";
-import {Pencil, Proportions, Trash2} from "lucide-react";
-import {TableauDeleteDialog, TableauFormDialog, TableauFormValues} from "./dialog";
+import {useState} from "react";
 import {useMutation, useQuery} from "@tanstack/react-query";
 import {convexQuery, useConvexMutation} from "@convex-dev/react-query";
 import {api} from "@/convex/_generated/api";
+import {Card, CardContent, CardFooter, CardHeader, CardTitle} from "@/components/ui/card";
+import {Button} from "@/components/ui/button";
 import {Skeleton} from "@/components/ui/skeleton";
+import {toast} from "sonner";
+import {Copy, FileMusic, Pencil, Trash2} from "lucide-react";
+import {Badge} from "@/components/ui/badge";
 import {Id} from "@/convex/_generated/dataModel";
-import {useState} from "react";
+import {ChoregraphieDeleteDialog, ChoregraphieFormDialog, ChoregraphieFormValues} from "./dialog";
+import {Choregraphie} from "@/type";
 import Link from "next/link";
 
-export default function TableauxPage() {
+export default function ChoregraphiesPage() {
   const [open, setOpen] = useState<string>("");
-  const { data: tableaux, isPending: tableauxPending } = useQuery(
-    convexQuery(api.tableaux.getTableaux, {})
-  );
-  const { data: saisons, isPending: saisonsPending } = useQuery(
-    convexQuery(api.saisons.getSaisons, {})
-  );
-  const { mutate: create, isPending: createPending } = useMutation({
+  const {data: choregraphies, isPending: chPending} = useQuery(convexQuery(api.tableaux.getTableaux, {}));
+  const {data: tableaux} = useQuery(convexQuery(api.blocs.getBlocs, {}));
+
+  const {mutate: create, isPending: createPending} = useMutation({
     mutationFn: useConvexMutation(api.tableaux.createTableau),
     onSuccess: () => {
-      toast.success("Tableau créé")
+      toast.success("Tableau créé");
       setOpen("");
     },
-    onError: () => toast.error("Erreur lors de la création du tableau"),
+    onError: () => toast.error("Erreur lors de la création"),
   });
-  const { mutate: update, isPending: updatePending } = useMutation({
+  const {mutate: update, isPending: updatePending} = useMutation({
     mutationFn: useConvexMutation(api.tableaux.updateTableau),
     onSuccess: () => {
-      toast.success("Tableau modifié")
+      toast.success("Tableau modifié");
       setOpen("");
     },
-    onError: () => toast.error("Erreur lors de la modification du tableau"),
+    onError: () => toast.error("Erreur lors de la modification"),
   });
-  const { mutate: remove, isPending: removePending } = useMutation({
+  const {mutate: remove, isPending: removePending} = useMutation({
     mutationFn: useConvexMutation(api.tableaux.deleteTableau),
     onSuccess: () => {
-      toast.success("Tableau supprimé")
+      toast.success("Tableau supprimé");
       setOpen("");
     },
-    onError: () => toast.error("Erreur lors de la suppression du tableau"),
+    onError: () => toast.error("Erreur lors de la suppression"),
+  });
+  const { mutate: duplicate, isPending: duplicatePending } = useMutation({
+    mutationFn: useConvexMutation(api.tableaux.duplicateTableau),
+    onSuccess: () => toast.success("Tableau dupliqué"),
+    onError: () => toast.error("Erreur lors de la duplication"),
   });
 
-  const handleCreate = async (values: TableauFormValues) => {
+  const handleCreate = async (values: ChoregraphieFormValues) => {
     create({
       nom: values.nom,
-      saisonId: values.saisonId as Id<"saison">,
+      blocId: values.blocId as Id<"tableaux">,
+      musique: values.musique || "",
+      duree: values.duree || undefined,
       description: values.description || "",
     });
   };
 
-  const handleUpdate = async (id: Id<"tableaux">, values: TableauFormValues) => {
+  const handleUpdate = async (id: Id<"choregraphies">, values: ChoregraphieFormValues) => {
     update({ id, data: {
       nom: values.nom,
-      saisonId: values.saisonId as Id<"saison">,
+      blocId: values.blocId as Id<"tableaux">,
+      musique: values.musique || "",
+      duree: values.duree || undefined,
       description: values.description || "",
       } });
   };
 
-  if (tableauxPending || saisonsPending) {
+  if (chPending) {
     return (
       <div className="max-w-4xl mx-auto py-8 px-4">
-        <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold flex items-center gap-2 mr-2">
-            <Proportions className="w-7 h-7 text-primary" /> Tableaux
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold flex items-center gap-2" style={{ fontFamily: "var(--font-playfair)" }}>
+            <FileMusic className="w-7 h-7 text-primary" /> Tableaux
           </h1>
-          <Skeleton className="w-32 h-10 rounded-md" />
+          <div className="flex items-center gap-2 mt-2" aria-hidden>
+            <span className="h-px w-10 rounded-full" style={{ background: "var(--gold)" }} />
+            <span className="w-1 h-1 rounded-full" style={{ background: "var(--gold)" }} />
+            <span className="h-px w-10 rounded-full" style={{ background: "var(--gold)" }} />
+          </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {[...Array(2)].map((_, i) => (
-            <div key={i} className="relative border-border rounded-lg p-4 shadow-sm bg-background">
-              <div className="flex flex-row items-center gap-2 mb-2">
-                <Skeleton className="w-20 h-6 rounded" />
-                <Skeleton className="w-12 h-5 rounded" />
-              </div>
-              <div className="mb-2">
-                <Skeleton className="w-16 h-4 rounded" />
-              </div>
-              <div className="mb-2">
-                <Skeleton className="w-32 h-4 rounded" />
-              </div>
-              <div className="flex justify-between items-center w-full gap-2 mb-2">
-                <Skeleton className="w-20 h-8 rounded" />
-                <Skeleton className="w-20 h-8 rounded" />
-              </div>
-              <div className="flex justify-end items-center w-full gap-2">
-                <Skeleton className="w-16 h-8 rounded" />
-                <Skeleton className="w-16 h-8 rounded" />
-              </div>
-            </div>
+            <Skeleton key={i} className="h-32 w-full rounded-lg" />
           ))}
         </div>
       </div>
     );
   }
 
-  if(!saisons || saisons.length === 0) {
+  if(!tableaux) {
     return (
       <div className="max-w-4xl mx-auto py-8 px-4">
-        <h1 className="text-3xl font-bold mb-4">Aucune saison disponible</h1>
-        <p className="text-muted-foreground">
-          Veuillez créer une saison avant de créer des tableaux.
-        </p>
-        <Button
-          variant="default"
-          className="mt-4"
-        >
-          <Link href="/saisons">Créer une saison</Link>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold flex items-center gap-2" style={{ fontFamily: "var(--font-playfair)" }}>
+            <FileMusic className="w-7 h-7 text-primary" /> Tableaux
+          </h1>
+          <div className="flex items-center gap-2 mt-2" aria-hidden>
+            <span className="h-px w-10 rounded-full" style={{ background: "var(--gold)" }} />
+            <span className="w-1 h-1 rounded-full" style={{ background: "var(--gold)" }} />
+            <span className="h-px w-10 rounded-full" style={{ background: "var(--gold)" }} />
+          </div>
+        </div>
+        <p className="text-muted-foreground">Aucun bloc disponible. Veuillez créer un bloc pour ajouter des tableaux.</p>
+        <Button variant="default" className="mt-4" >
+          <Link href={"/blocs"}>Blocs</Link>
         </Button>
       </div>
     );
@@ -119,59 +115,59 @@ export default function TableauxPage() {
   return (
     <div className="max-w-4xl mx-auto py-8 px-4">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="text-3xl font-bold flex items-center gap-2 mr-2">
-          <Proportions className="w-7 h-7 text-primary" /> Tableaux
-        </h1>
-        <TableauFormDialog
+        <div>
+          <h1 className="text-3xl font-bold flex items-center gap-2" style={{ fontFamily: "var(--font-playfair)" }}>
+            <FileMusic className="w-7 h-7 text-primary" /> Tableaux
+          </h1>
+          <div className="flex items-center gap-2 mt-2" aria-hidden>
+            <span className="h-px w-10 rounded-full" style={{ background: "var(--gold)" }} />
+            <span className="w-1 h-1 rounded-full" style={{ background: "var(--gold)" }} />
+            <span className="h-px w-10 rounded-full" style={{ background: "var(--gold)" }} />
+          </div>
+        </div>
+        <ChoregraphieFormDialog
           open={open === "create"}
           onOpenChange={(open) => setOpen(open ? "create" : "")}
           loading={createPending}
           onSave={handleCreate}
-          saisons={saisons ?? []}
+          tableaux={tableaux ?? []}
         >
           <Button variant="default">Nouveau tableau</Button>
-        </TableauFormDialog>
+        </ChoregraphieFormDialog>
       </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {tableaux?.map((tableau) => (
-          <Card key={tableau._id} className="relative border-border rounded-lg">
-            <CardHeader className="flex flex-row items-center gap-2">
+        {choregraphies?.map((chore : Choregraphie) => (
+          <Card key={chore._id} className="relative border-border/60 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
+            <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                {tableau.nom}
-                <Badge variant="default">
-                  {saisons?.find((s) => s._id === tableau.saisonId)?.nom || "?"}
-                </Badge>
+                {chore.nom}
+                {chore.blocId && (
+                  <Badge variant="secondary">
+                    {tableaux?.find((t) => t._id === chore.blocId)?.nom || "?"}
+                  </Badge>
+                )}
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="mb-2 text-muted-foreground text-sm">
-                {tableau.description}
+              <div className="text-muted-foreground text-sm mb-2">
+                {chore.musique}
               </div>
-              <Button variant="outline">
-                <Link href={`/choregraphies/?tableau=${tableau._id}`}>
-                  Chorégraphies
-                </Link>
-              </Button>
+              <div className="mb-2">{chore.description}</div>
             </CardContent>
             <CardFooter className="flex justify-end items-center w-full gap-2">
               <Button
                 size="sm"
-                variant={"outline"}
-                asChild
-                className="flex items-center gap-1"
+                className="mr-2"
               >
-                <Link href={`/tableaux/${tableau._id}`}>
-                  <Proportions className="w-4 h-4 mr-1" />
-                  Voir
-                </Link>
+                 <Link href={`/tableaux/${chore._id}`}>Détails</Link>
               </Button>
-              <TableauFormDialog
-                open={open === `edit-${tableau._id}`}
-                onOpenChange={(open) => setOpen(open ? `edit-${tableau._id}` : "")}
-                editTableau={tableau}
+              <ChoregraphieFormDialog
+                open={open === `edit-${chore._id}`}
+                onOpenChange={(open) => setOpen(open ? `edit-${chore._id}` : "")}
+                editChoregraphie={chore}
                 loading={updatePending}
-                onSave={(values) => handleUpdate(tableau._id as Id<"tableaux">, values)}
-                saisons={saisons ?? []}
+                onSave={(values) => handleUpdate(chore._id as Id<"choregraphies">, values)}
+                tableaux={tableaux ?? []}
               >
                 <Button
                   size="sm"
@@ -181,23 +177,32 @@ export default function TableauxPage() {
                 >
                   <Pencil className="w-4 h-4 mr-1" /> Modifier
                 </Button>
-              </TableauFormDialog>
-              <TableauDeleteDialog
-                open={open === `delete-${tableau._id}`}
-                onOpenChange={(open) => setOpen(open ? `delete-${tableau._id}` : "")}
-                tableauToDelete={tableau}
-                onDelete={() => remove({ id: tableau._id as Id<"tableaux"> })}
+              </ChoregraphieFormDialog>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => duplicate({ id: chore._id as Id<"choregraphies"> })}
+                disabled={duplicatePending}
+                title="Dupliquer"
+              >
+                <Copy className="w-4 h-4" />
+              </Button>
+              <ChoregraphieDeleteDialog
+                open={open === `delete-${chore._id}`}
+                onOpenChange={(open) => setOpen(open ? `delete-${chore._id}` : "")}
+                choregraphieToDelete={chore}
+                onDelete={() => remove({ id: chore._id as Id<"choregraphies"> })}
                 loading={removePending}
               >
                 <Button
                   size="sm"
                   variant="destructive"
                   disabled={removePending}
-                  aria-label={`Supprimer le tableau ${tableau.nom}`}
+                  aria-label={`Supprimer le tableau ${chore.nom}`}
                 >
                   <Trash2 className="w-4 h-4 mr-1" /> Supprimer
                 </Button>
-              </TableauDeleteDialog>
+              </ChoregraphieDeleteDialog>
             </CardFooter>
           </Card>
         ))}

@@ -69,6 +69,20 @@ export const deleteAccessoire = mutation({
   },
 });
 
+// DUPLICATE
+export const duplicateAccessoire = mutation({
+  args: { id: v.id("accessoires") },
+  handler: async (ctx, { id }) => {
+    const original = await ctx.db.get(id);
+    if (!original) throw new Error("Accessoire introuvable");
+    const { _id, _creationTime, ...fields } = original;
+    return await ctx.db.insert("accessoires", {
+      ...fields,
+      descriptif: `Copie de ${fields.descriptif ?? ""}`.trim(),
+    });
+  },
+});
+
 // GET Avaialble Quantities
 export const getAccessoiresAvailables = query({
   args: {},

@@ -20,6 +20,7 @@ import {Input} from "@/components/ui/input";
 import {Assignation, Danseuse, Role, Saison, User} from "@/type";
 import {useSearch} from "@/components/global-search";
 import Link from "next/link";
+import {Users} from "lucide-react";
 
 const danseuseSchema = z.object({
   userId: z.string().min(1, ),
@@ -111,7 +112,16 @@ export default function UsersPage() {
   if (isPending || rolesPending) {
     return (
       <div className="max-w-4xl mx-auto py-8 px-4">
-        <h1 className="text-3xl font-bold mb-8">Gestion des utilisateurs</h1>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold flex items-center gap-2" style={{ fontFamily: "var(--font-playfair)" }}>
+            <Users className="w-7 h-7 text-primary" /> Utilisateurs
+          </h1>
+          <div className="flex items-center gap-2 mt-2" aria-hidden>
+            <span className="h-px w-10 rounded-full" style={{ background: "var(--gold)" }} />
+            <span className="w-1 h-1 rounded-full" style={{ background: "var(--gold)" }} />
+            <span className="h-px w-10 rounded-full" style={{ background: "var(--gold)" }} />
+          </div>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {[...Array(2)].map((_, i) => (
             <div
@@ -151,8 +161,17 @@ export default function UsersPage() {
   if (!saisons || saisons.length === 0) {
     return (
       <div className="max-w-4xl mx-auto py-8 px-4">
-        <h1 className="text-3xl font-bold mb-8">Gestion des utilisateurs</h1>
-        <p className="text-red-500">Aucune saison disponible. Veuillez créer une saison avant de gérer les utilisateurs.</p>
+        <div className="mb-8">
+          <h1 className="text-3xl font-bold flex items-center gap-2" style={{ fontFamily: "var(--font-playfair)" }}>
+            <Users className="w-7 h-7 text-primary" /> Utilisateurs
+          </h1>
+          <div className="flex items-center gap-2 mt-2" aria-hidden>
+            <span className="h-px w-10 rounded-full" style={{ background: "var(--gold)" }} />
+            <span className="w-1 h-1 rounded-full" style={{ background: "var(--gold)" }} />
+            <span className="h-px w-10 rounded-full" style={{ background: "var(--gold)" }} />
+          </div>
+        </div>
+        <p className="text-muted-foreground">Aucune saison disponible. Veuillez créer une saison avant de gérer les utilisateurs.</p>
         <Button
           className="mt-4">
           <Link href="/saisons" >
@@ -165,15 +184,24 @@ export default function UsersPage() {
 
   return (
     <div className="max-w-4xl mx-auto py-8 px-4">
-      <h1 className="text-3xl font-bold mb-8">Gestion des utilisateurs</h1>
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold flex items-center gap-2" style={{ fontFamily: "var(--font-playfair)" }}>
+          <Users className="w-7 h-7 text-primary" /> Utilisateurs
+        </h1>
+        <div className="flex items-center gap-2 mt-2" aria-hidden>
+          <span className="h-px w-10 rounded-full" style={{ background: "var(--gold)" }} />
+          <span className="w-1 h-1 rounded-full" style={{ background: "var(--gold)" }} />
+          <span className="h-px w-10 rounded-full" style={{ background: "var(--gold)" }} />
+        </div>
+      </div>
       <Input
         placeholder="Rechercher un utilisateur..."
         onChange={e => setQuery(e.target.value)}
-        className="mb-4 w-1/2"
+        className="mb-6 w-full sm:w-1/2"
       />
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {(results ? results : users)?.map((user: UserUp) => (
-          <Card key={user._id} className="relative w-[400px]">
+          <Card key={user._id} className="relative border-border/60 shadow-sm hover:shadow-md transition-all duration-300">
             <CardHeader>
               <CardTitle>{user.name || user.email}</CardTitle>
               <Badge>

@@ -19,14 +19,14 @@ export function DataTableViewOptions<T>( {children}: Readonly<{ children?: React
     const {table} = useDataTable<T>();
 
     return (
-        <div className="flex items-center py-4 gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
             <Input
                 placeholder="Rechercher..."
                 value={table.getState().globalFilter ?? ""}
                 onChange={(event) =>
                     table.setGlobalFilter(event.target.value)
                 }
-                className="max-w-sm"
+                className="max-w-xs h-9 text-sm"
             />
             {children}
             <DropdownMenu>
@@ -34,15 +34,17 @@ export function DataTableViewOptions<T>( {children}: Readonly<{ children?: React
                     <Button
                         variant="outline"
                         size="sm"
-                        className="ml-auto hidden h-8 lg:flex"
+                        className="ml-auto h-9 border-border/60 text-muted-foreground hover:text-foreground"
                     >
-                        <Settings2/>
-                        View
+                        <Settings2 className="w-4 h-4 mr-1.5" />
+                        Colonnes
                     </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-[150px]">
-                    <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
-                    <DropdownMenuSeparator/>
+                <DropdownMenuContent align="end" className="w-[160px]">
+                    <DropdownMenuLabel className="text-xs font-semibold tracking-wider uppercase text-muted-foreground">
+                        Affichage
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
                     {table
                         .getAllColumns()
                         .filter(
@@ -53,7 +55,7 @@ export function DataTableViewOptions<T>( {children}: Readonly<{ children?: React
                             return (
                                 <DropdownMenuCheckboxItem
                                     key={column.id}
-                                    className="capitalize"
+                                    className="capitalize text-sm"
                                     checked={column.getIsVisible()}
                                     onCheckedChange={(value) => column.toggleVisibility(value)}
                                 >

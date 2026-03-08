@@ -1,5 +1,5 @@
 import {ColumnDef} from "@tanstack/react-table";
-import {MoreHorizontal} from "lucide-react";
+import {Copy, MoreHorizontal} from "lucide-react";
 import {Button} from "@/components/ui/button";
 import {
     DropdownMenu,
@@ -15,6 +15,10 @@ import Link from "next/link";
 import Image from "next/image";
 import React from "react";
 import {DeleteCostumeDialog, EditCostumeDialog} from "@/app/costumes/dialog";
+import {useMutation} from "@tanstack/react-query";
+import {useConvexMutation} from "@convex-dev/react-query";
+import {api} from "@/convex/_generated/api";
+import {toast} from "sonner";
 
 
 export const columns: ColumnDef<Costume>[] = [
@@ -93,9 +97,9 @@ export const columns: ColumnDef<Costume>[] = [
         ),
     },
     {
-        accessorKey: "photo_prise_par",
+        accessorKey: "divers",
         header: ({column}) => (
-            <DataTableColumnHeader column={column} title="Photo prise par"/>
+            <DataTableColumnHeader column={column} title="Divers"/>
         ),
     },
     {
@@ -111,6 +115,11 @@ export const columns: ColumnDef<Costume>[] = [
 function CostumeActionsCell({ costume }: { costume: Costume }) {
     const [openModif, setOpenModif] = React.useState(false);
     const [openSuppr, setOpenSuppr] = React.useState(false);
+    const { mutate: duplicate, isPending: duplicatePending } = useMutation({
+        mutationFn: useConvexMutation(api.costumes.duplicateCostume),
+        onSuccess: () => toast.success("Costume dupliqué"),
+        onError: () => toast.error("Erreur lors de la duplication"),
+    });
 
     return (
         <>
@@ -131,7 +140,15 @@ function CostumeActionsCell({ costume }: { costume: Costume }) {
                         <Link href={`/costumes/${costume._id}`}>Voir</Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem onClick={() => setOpenModif(true)}>Modifier</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => setOpenSuppr(true)}>Supprimer</DropdownMenuItem>
+                    <DropdownMenuItem
+                        onClick={() => duplicate({ id: costume._id })}
+                        disabled={duplicatePending}
+                        className="gap-2"
+                    >
+                        <Copy className="w-3.5 h-3.5" /> Dupliquer
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator/>
+                    <DropdownMenuItem onClick={() => setOpenSuppr(true)} className="text-destructive focus:text-destructive">Supprimer</DropdownMenuItem>
                 </DropdownMenuContent>
             </DropdownMenu>
             <EditCostumeDialog

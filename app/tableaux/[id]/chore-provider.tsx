@@ -11,13 +11,15 @@ type ChoregraphyUpdateForm = {
     id: Id<"choregraphies">
     data: {
         description?: string | undefined
-        tableauId?: Id<"tableaux"> | undefined
+        blocId?: Id<"tableaux"> | undefined
         musique?: string | undefined
         ordre?: number | undefined
         duree?: number | undefined
         nom?: string | undefined
     }
 };
+
+type RoleWithDanseuse = RoleChoregraphie & { danseuse?: Danseuse & { user?: User } };
 
 type DanseuseLibre = Danseuse & User & {
     assignations: {
@@ -28,12 +30,13 @@ type DanseuseLibre = Danseuse & User & {
 };
 
 type ChoregraphieDetailContextType = {
-    form: { nom: string; musique: string; description: string; tableauId: string | undefined };
+    form: { nom: string; musique: string; description: string; blocId: string | undefined; duree: number | undefined };
     setForm: React.Dispatch<React.SetStateAction<{
         nom: string;
         musique: string;
         description: string;
-        tableauId: Id<"tableaux"> | undefined;
+        blocId: Id<"tableaux"> | undefined;
+        duree: number | undefined;
     }>>;
     dirty: boolean;
     setDirty: React.Dispatch<React.SetStateAction<boolean>>;
@@ -44,25 +47,31 @@ type ChoregraphieDetailContextType = {
     chorePending: boolean;
     saving: boolean;
     handleUpdate: (data: ChoregraphyUpdateForm) => void;
-    groupes: GroupeChoregraphie[] | undefined;
-    role: RoleChoregraphie | undefined;
+    groupes: (GroupeChoregraphie & { danseuses: Danseuse[] })[] | undefined;
+    roles: RoleWithDanseuse[] | undefined;
+    selectedRole: Id<"roles_choregraphie"> | undefined;
+    setSelectedRole: React.Dispatch<React.SetStateAction<Id<"roles_choregraphie"> | undefined>>;
+    selectedDanseuseId: Id<"danseuses"> | undefined;
+    setSelectedDanseuseId: React.Dispatch<React.SetStateAction<Id<"danseuses"> | undefined>>;
     selectedEntity: EntityType | undefined;
     setSelectedEntity: React.Dispatch<React.SetStateAction<EntityType | undefined>>;
     danseusesLibres: DanseuseLibre [] | undefined;
-    createRole: (data: { choregraphieId: Id<"choregraphies">; nom: string, danseuseId?: Id<"danseuses"> }) => void;
+    createRole: (data: { tableauId: Id<"choregraphies">; nom: string, danseuseId?: Id<"danseuses"> }) => void;
     updateRole: (data: { id: Id<"roles_choregraphie">; nom: string; danseuseId?: Id<"danseuses"> }) => void;
     deleteRole: (data: { id: Id<"roles_choregraphie"> }) => void;
-    createGroupe: (data: { choregraphieId: Id<"choregraphies">; nom?: string }) => void;
+    createGroupe: (data: { tableauId: Id<"choregraphies">; nom?: string }) => void;
     updateGroupe: (data: {
         id: Id<"groupes_choregraphie">;
         nom?: string;
-        choregraphieId?: Id<"choregraphies">
+        tableauId?: Id<"choregraphies">
     }) => void;
     deleteGroupe: (data: { id: Id<"groupes_choregraphie"> }) => void;
     assignDanseuseToRole: (data: { roleId: Id<"roles_choregraphie">; danseuseId: Id<"danseuses"> }) => void;
     removeDanseuseFromRole: (data: { roleId: Id<"roles_choregraphie"> }) => void;
-    assignDanseuseToGroupe: (data: { groupeId: Id<"groupes_choregraphie">; danseuseId: Id<"danseuses"> }) => void;
+    assignDanseuseToGroupe: (data: { groupeId: Id<"groupes_choregraphie">; danseuseId: Id<"danseuses">; parentTableauId: Id<"choregraphies"> }) => void;
     removeDanseuseFromGroupe: (data: { groupeId: Id<"groupes_choregraphie">; danseuseId: Id<"danseuses"> }) => void;
+    assignCostumeToGroupe: (data: { costumeId: Id<"costumes">; groupeId: Id<"groupes_choregraphie">; parentTableauId: Id<"choregraphies"> }) => void;
+    assignAccessoireToGroupe: (data: { accessoireId: Id<"accessoires">; groupeId: Id<"groupes_choregraphie">; parentTableauId: Id<"choregraphies"> }) => void;
     danseuse: Danseuse & User & Costume[] & Accessoire[] | undefined;
     statusRole: { text: string; icon: React.ReactNode; color: string };
     handleUpdateRole: (data: string) => void;
@@ -72,24 +81,24 @@ type ChoregraphieDetailContextType = {
     assignAccessoireToDanseuse: (data: {
         accessoireId: Id<"accessoires">,
         danseuseId: Id<"danseuses">,
-        parentChoregraphieId: Id<"choregraphies">,
-        choregraphieId: Id<"roles_choregraphie"> | Id<"groupes_choregraphie">
+        parentTableauId: Id<"choregraphies">,
+        roleOuGroupeId: Id<"roles_choregraphie"> | Id<"groupes_choregraphie">
     }) => void;
     assignCostumeToDanseuse: (data: {
         costumeId: Id<"costumes">,
         danseuseId: Id<"danseuses">,
-        parentChoregraphieId: Id<"choregraphies">,
-        choregraphieId: Id<"roles_choregraphie"> | Id<"groupes_choregraphie">
+        parentTableauId: Id<"choregraphies">,
+        roleOuGroupeId: Id<"roles_choregraphie"> | Id<"groupes_choregraphie">
     }) => void;
     removeAccessoireFromDanseuse: (data: {
         accessoireId: Id<"accessoires">,
         danseuseId: Id<"danseuses">,
-        choregraphieId: Id<"roles_choregraphie"> | Id<"groupes_choregraphie">
+        roleOuGroupeId: Id<"roles_choregraphie"> | Id<"groupes_choregraphie">
     }) => void;
     removeCostumeFromDanseuse: (data: {
         costumeId: Id<"costumes">,
         danseuseId: Id<"danseuses">,
-        choregraphieId: Id<"roles_choregraphie"> | Id<"groupes_choregraphie">
+        roleOuGroupeId: Id<"roles_choregraphie"> | Id<"groupes_choregraphie">
     }) => void;
     selectedGroupe: Id<"groupes_choregraphie"> | undefined;
     setSelectedGroupe: React.Dispatch<React.SetStateAction<Id<"groupes_choregraphie"> | undefined>>;
@@ -106,32 +115,32 @@ export function useChoregraphieDetail() {
     return ctx;
 }
 
-export type EntityType = "groupe" | "danseuse" | "role";
+export type EntityType = "groupe" | "danseuse" | "role" | "groupe-costume" | "groupe-accessoire";
 
 
 type Props = { params: Promise<{ id: string }>; children: React.ReactNode };
 
 export function ChoregraphieDetailProvider({params, children}: Props) {
     const {id} = use(params);
-    const choregraphieId = id as Id<"choregraphies">;
+    const tableauId = id as Id<"choregraphies">;
     const [selectedGroupe, setSelectedGroupe] = useState<Id<"groupes_choregraphie"> | undefined>(undefined);
 
     // chore
     const {
         data: chore,
         isPending: chorePending
-    } = useQuery(convexQuery(api.choregraphies.getChoregraphie, {id: choregraphieId}));
+    } = useQuery(convexQuery(api.tableaux.getTableau, {id: tableauId}));
     const {mutate: update, isPending: saving, isError, isSuccess} = useMutation({
-        mutationFn: useConvexMutation(api.choregraphies.updateChoregraphie),
+        mutationFn: useConvexMutation(api.tableaux.updateTableau),
         onSuccess: () => {
             toast("Chorégraphie mise à jour");
         }
     });
 
-    // role
-    const {data: role} = useQuery(convexQuery(api.roles.getRoleChoregraphieByChoregraphie, {choregraphieId: choregraphieId}),);
+    // roles
+    const {data: roles} = useQuery(convexQuery(api.roles.getRolesWithDanseuses, {tableauId: tableauId}));
     const {mutate: createRole} = useMutation({
-        mutationFn: useConvexMutation(api.roles.createRoleChoregraphie),
+        mutationFn: useConvexMutation(api.roles.createRoleTableau),
         onSuccess: () => {
             toast("Rôle créé");
         }
@@ -142,20 +151,20 @@ export function ChoregraphieDetailProvider({params, children}: Props) {
         isSuccess: successRole,
         isError: errorRole,
     } = useMutation({
-        mutationFn: useConvexMutation(api.roles.updateRoleChoregraphie),
+        mutationFn: useConvexMutation(api.roles.updateRoleTableau),
         onSuccess: () => {
             toast("Rôle mis à jour");
         }
     });
     const {mutate: deleteRole} = useMutation({
-        mutationFn: useConvexMutation(api.roles.deleteRoleChoregraphie),
+        mutationFn: useConvexMutation(api.roles.deleteRoleTableau),
         onSuccess: () => {
             toast("Rôle supprimé");
         }
     });
 
     // groupe
-    const {data: groupes} = useQuery(convexQuery(api.choregraphies.getGroupesByChoregraphie, {choregraphieId: choregraphieId}));
+    const {data: groupes} = useQuery(convexQuery(api.tableaux.getGroupesWithDanseuses, {tableauId: tableauId}));
     const {mutate: createGroupe} = useMutation({
         mutationFn: useConvexMutation(api.groupes.createGroupe),
         onSuccess: () => {
@@ -183,42 +192,51 @@ export function ChoregraphieDetailProvider({params, children}: Props) {
 
     // danseuse
     const {data: danseusesLibres} = useQuery({
-        ...convexQuery(api.users.getDanseusesBySaison, { choreId: choregraphieId }),
-        enabled: !!choregraphieId
+        ...convexQuery(api.users.getDanseusesBySaison, { tableauId: tableauId }),
+        enabled: !!tableauId
     });
     const {mutate: assignDanseuseToRole} = useMutation({
-            mutationFn: useConvexMutation(api.choregraphies.assignDanseuseToRole),
+            mutationFn: useConvexMutation(api.tableaux.assignDanseuseToRole),
             onSuccess: () => {
                 toast("Danseuse assignée au rôle");
             }
         }
     )
     const {mutate: removeDanseuseFromRole} = useMutation({
-            mutationFn: useConvexMutation(api.choregraphies.removeDanseuseFromRole),
+            mutationFn: useConvexMutation(api.tableaux.removeDanseuseFromRole),
             onSuccess: () => {
                 toast("Danseuse retirée du rôle");
             }
         }
     )
     const {mutate: assignDanseuseToGroupe} = useMutation({
-            mutationFn: useConvexMutation(api.choregraphies.assignDanseuseToGroupe),
-            onSuccess: () => {
-                toast("Danseuse assignée au groupe");
+            mutationFn: useConvexMutation(api.tableaux.assignDanseuseToGroupe),
+            onSuccess: (data) => {
+                const result = data as { skippedEquipment?: number } | undefined;
+                if (result?.skippedEquipment && result.skippedEquipment > 0) {
+                    toast.warning(`Danseuse ajoutée, mais ${result.skippedEquipment} équipement(s) non assigné(s) (stock insuffisant)`);
+                } else {
+                    toast("Danseuse assignée au groupe");
+                }
+            },
+            onError: (err) => {
+                toast.error((err as Error).message);
             }
         }
     );
     const {mutate: removeDanseuseFromGroupe} = useMutation({
-            mutationFn: useConvexMutation(api.choregraphies.removeDanseuseFromGroupe),
+            mutationFn: useConvexMutation(api.tableaux.removeDanseuseFromGroupe),
             onSuccess: () => {
                 toast("Danseuse retirée du groupe");
             }
         }
     );
-    const {data: danseuse} = useQuery(convexQuery(api.users.getDanseuse, {id: role?.danseuseId ?? "" as Id<"danseuses">}));
+    const [selectedDanseuseId, setSelectedDanseuseId] = useState<Id<"danseuses"> | undefined>(undefined);
+    const {data: danseuse} = useQuery(convexQuery(api.users.getDanseuse, {id: selectedDanseuseId ?? "" as Id<"danseuses">}));
 
 
     // tableaux
-    const {data: tableaux, isPending: updatePending} = useQuery(convexQuery(api.tableaux.getTableaux, {}));
+    const {data: tableaux, isPending: updatePending} = useQuery(convexQuery(api.blocs.getBlocs, {}));
 
 
     // costumes
@@ -251,13 +269,36 @@ export function ChoregraphieDetailProvider({params, children}: Props) {
         }
     });
 
+    // groupe équipements
+    const {mutate: assignCostumeToGroupe} = useMutation({
+        mutationFn: useConvexMutation(api.assignation.assignCostumeToGroupe),
+        onSuccess: (data) => {
+            const result = data as { count?: number } | undefined;
+            toast.success(`Costume assigné à ${result?.count ?? 0} danseuse(s)`);
+        },
+        onError: (err) => {
+            toast.error((err as Error).message);
+        }
+    });
+    const {mutate: assignAccessoireToGroupe} = useMutation({
+        mutationFn: useConvexMutation(api.assignation.assignAccessoireToGroupe),
+        onSuccess: (data) => {
+            const result = data as { count?: number } | undefined;
+            toast.success(`Accessoire assigné à ${result?.count ?? 0} danseuse(s)`);
+        },
+        onError: (err) => {
+            toast.error((err as Error).message);
+        }
+    });
 
-    const [form, setForm] = useState({nom: "", musique: "", description: "", tableauId: chore?.tableauId ?? undefined});
+
+    const [form, setForm] = useState({nom: "", musique: "", description: "", blocId: chore?.tableauId ?? undefined, duree: chore?.duree ?? undefined as number | undefined});
     const [dirty, setDirty] = useState(false);
     const [dirtyRole, setDirtyRole] = useState(false);
     const [dirtyGroupe, setDirtyGroupe] = useState(false);
     const [selectedEntity, setSelectedEntity] = useState<EntityType | undefined>(undefined);
-    const [roleName, setRoleName] = useState<string>(role?.nom ?? "");
+    const [selectedRole, setSelectedRole] = useState<Id<"roles_choregraphie"> | undefined>(undefined);
+    const [roleName, setRoleName] = useState<string>("");
     const [groupeName, setGroupeName] = useState<string>(groupes?.filter(g => g._id === selectedGroupe)[0]?.nom ?? "");
 
 
@@ -267,23 +308,27 @@ export function ChoregraphieDetailProvider({params, children}: Props) {
             nom: chore.nom,
             musique: chore.musique ?? "",
             description: chore.description ?? "",
-            tableauId: chore?.tableauId ?? undefined
+            blocId: chore?.tableauId ?? undefined,
+            duree: chore.duree ?? undefined
         });
     }, [chore]);
 
     useEffect(() => {
         if (dirty) {
             const timeout = setTimeout(() => {
-                update({id: choregraphieId, data: form});
+                update({id: tableauId, data: form});
                 setDirty(false);
             }, 800);
             return () => clearTimeout(timeout);
         }
-    }, [form, dirty, update, choregraphieId]);
+    }, [form, dirty, update, tableauId]);
 
     useEffect(() => {
-        if (role) setRoleName(role.nom);
-    }, [role]);
+        if (selectedRole && roles) {
+            const r = roles.find(r => r._id === selectedRole);
+            if (r) setRoleName(r.nom ?? "");
+        }
+    }, [roles, selectedRole]);
 
     useEffect(
         () => {
@@ -296,13 +341,13 @@ export function ChoregraphieDetailProvider({params, children}: Props) {
     useEffect(() => {
         if (!dirtyRole) return;
         const timeout = setTimeout(() => {
-            if (role && roleName) {
-                updateRole({id: role._id as Id<"roles_choregraphie">, nom: roleName});
+            if (selectedRole && roleName) {
+                updateRole({id: selectedRole, nom: roleName});
             }
             setDirtyRole(false);
         }, 800);
         return () => clearTimeout(timeout);
-    }, [roleName, dirtyRole, role, updateRole]);
+    }, [roleName, dirtyRole, selectedRole, updateRole]);
 
 
     useEffect(() => {
@@ -441,7 +486,11 @@ export function ChoregraphieDetailProvider({params, children}: Props) {
         saving,
         handleUpdate,
         groupes,
-        role,
+        roles,
+        selectedRole,
+        setSelectedRole,
+        selectedDanseuseId,
+        setSelectedDanseuseId,
         selectedEntity,
         setSelectedEntity,
         danseusesLibres,
@@ -455,6 +504,8 @@ export function ChoregraphieDetailProvider({params, children}: Props) {
         removeDanseuseFromRole,
         assignDanseuseToGroupe,
         removeDanseuseFromGroupe,
+        assignCostumeToGroupe,
+        assignAccessoireToGroupe,
         danseuse,
         statusRole,
         handleUpdateRole,

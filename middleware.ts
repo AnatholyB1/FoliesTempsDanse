@@ -17,12 +17,12 @@ const isAdminRoute = createRouteMatcher([
 ]);
 
 const isProtectedRoute = createRouteMatcher([
-    "/((?!api/auth|login|register|_next/static|_next/image|favicon.ico).*)",
+    "/((?!api/auth|login|register|_next/static|_next/image|favicon.ico|$).*)",
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
     if (isProtectedRoute(req)) {
-        await auth.protect();
+        await auth.protect({ unauthenticatedUrl: new URL("/", req.url).toString() });
 
         const userRole = req.cookies.get("user_role")?.value;
     

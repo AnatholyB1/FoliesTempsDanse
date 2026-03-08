@@ -1,6 +1,6 @@
 "use client";
-import {Card, CardContent, CardFooter, CardHeader, CardTitle} from "@/components/ui/card";
 import {Skeleton} from "@/components/ui/skeleton";
+import {Badge} from "@/components/ui/badge";
 import {Costume} from "@/type";
 import {useQuery} from "convex/react";
 import {api} from "@/convex/_generated/api";
@@ -9,6 +9,9 @@ import {Id} from "@/convex/_generated/dataModel";
 import Image from "next/image";
 import React, {use, useEffect, useState} from "react";
 import {DeleteCostumeDialog, EditCostumeDialog} from "@/app/costumes/dialog";
+import {ArrowLeft, Shirt} from "lucide-react";
+import {Button} from "@/components/ui/button";
+import Link from "next/link";
 
 type Props = {
     params: Promise<{ id: string }>
@@ -22,7 +25,6 @@ export default function Page({params}: Props) {
 
     const router = useRouter();
 
-
     useEffect(() => {
         if (deleted) {
             router.push("/costumes");
@@ -31,54 +33,43 @@ export default function Page({params}: Props) {
 
     const costume: Costume | undefined = useQuery(api.costumes.getCostume, {id: id as Id<"costumes">});
 
-
-    if (costume === undefined  || costume === null) {
+    if (costume === undefined || costume === null) {
         return (
-            <Card className="max-w-md mx-auto py-5 my-3">
-                <CardHeader>
-                    <CardTitle>Chargement du costume...</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <Skeleton className="h-48 w-[300px] mb-4"/>
-                    <Skeleton className="h-6 w-2/3 mb-2"/>
-                    <Skeleton className="h-6 w-1/2 mb-2"/>
-                    <Skeleton className="h-6 w-1/3"/>
-                </CardContent>
-            </Card>
+            <div className="max-w-4xl mx-auto py-8 px-4">
+                <Skeleton className="h-8 w-40 mb-2" />
+                <Skeleton className="h-px w-20 mb-8" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <Skeleton className="h-80 w-full rounded-xl" />
+                    <div className="space-y-3">
+                        {[...Array(8)].map((_, i) => <Skeleton key={i} className="h-6 w-full rounded" />)}
+                    </div>
+                </div>
+            </div>
         );
     }
 
     return (
-        <Card className="max-w-md mx-auto py-5 my-3">
-            <CardHeader>
-                <CardTitle>Costume</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-                    <Image
-                        width={200}
-                        height={200}
-                        src={costume.photo || "/placeholder.jpg"}
-                        alt="Photo du costume"
-                        className="w-[200px] h-[200px] place-self-center drop-shadow-lg object-cover rounded mb-4"
-                    />
-                <div><span className="font-semibold">Descriptif :</span> {costume.descriptif}</div>
-                <div><span className="font-semibold">Sexe :</span> {costume.sexe}</div>
-                <div><span className="font-semibold">Type :</span> {costume.type}</div>
-                <div><span className="font-semibold">Tissu/Motif :</span> {costume.tissu_motif}</div>
-                <div><span className="font-semibold">Couleur :</span> {costume.couleur}</div>
-                <div><span className="font-semibold">Taille :</span> {costume.taille}</div>
-                <div><span className="font-semibold">Quantité :</span> {costume.quantite}</div>
-                <div><span className="font-semibold">Emplacement :</span> {costume.emplacement}</div>
-                <div><span className="font-semibold">Portant :</span> {costume.portant}</div>
-                <div><span className="font-semibold">Photo prise par :</span> {costume.photo_prise_par}</div>
-
-            </CardContent>
-            <CardFooter className="flex flex-col justify-between gap-2 flex-grow">
-                <div className="text-xs text-gray-500 place-self-start ">
-                    <span className="font-semibold">ID :</span> {costume._id}<br/>
-                    <span className="font-semibold">Créé le :</span> {new Date(costume._creationTime).toLocaleString()}
+        <div className="max-w-4xl mx-auto py-8 px-4">
+            {/* Header */}
+            <div className="flex items-start justify-between mb-8">
+                <div>
+                    <Button variant="ghost" size="sm" className="mb-3 -ml-2 text-muted-foreground" asChild>
+                        <Link href="/costumes"><ArrowLeft className="w-4 h-4 mr-1" /> Retour aux costumes</Link>
+                    </Button>
+                    <h1
+                        className="text-3xl font-bold text-foreground flex items-center gap-2"
+                        style={{ fontFamily: "var(--font-playfair)" }}
+                    >
+                        <Shirt className="w-7 h-7 text-primary" />
+                        {costume.descriptif || "Costume"}
+                    </h1>
+                    <div className="flex items-center gap-2 mt-2" aria-hidden>
+                        <span className="h-px w-10 rounded-full" style={{ background: "var(--gold)" }} />
+                        <span className="w-1 h-1 rounded-full" style={{ background: "var(--gold)" }} />
+                        <span className="h-px w-10 rounded-full" style={{ background: "var(--gold)" }} />
+                    </div>
                 </div>
-                <div className="text-xs flex flex-row gap-2">
+                <div className="flex gap-2 mt-8">
                     <EditCostumeDialog
                         costume={costume}
                         onEdit={(edited) => setOpenEdited(!edited)}
@@ -92,7 +83,49 @@ export default function Page({params}: Props) {
                         onDelete={() => setDeleted(true)}
                     />
                 </div>
-            </CardFooter>
-        </Card>
-    )
+            </div>
+
+            {/* Content */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Photo */}
+                <div className="flex justify-center">
+                    <div className="w-full max-w-[360px] rounded-xl shadow-lg bg-muted flex items-center justify-center overflow-hidden">
+                        <Image
+                            width={360}
+                            height={360}
+                            src={costume.photo || "/placeholder.jpg"}
+                            alt="Photo du costume"
+                            className="w-full h-auto object-contain"
+                        />
+                    </div>
+                </div>
+
+                {/* Fields */}
+                <div className="space-y-4">
+                    {[
+                        { label: "Sexe", value: costume.sexe },
+                        { label: "Type", value: costume.type },
+                        { label: "Tissu / Motif", value: costume.tissu_motif },
+                        { label: "Couleur", value: costume.couleur },
+                        { label: "Taille", value: costume.taille },
+                        { label: "Quantité", value: costume.quantite },
+                        { label: "Emplacement", value: costume.emplacement },
+                        { label: "Portant", value: costume.portant },
+                        { label: "Divers", value: costume.divers },
+                    ].map(({ label, value }) =>
+                        value ? (
+                            <div key={label} className="flex flex-col gap-0.5">
+                                <span className="text-xs uppercase tracking-wider text-muted-foreground">{label}</span>
+                                <span className="text-sm font-medium text-foreground">{value}</span>
+                            </div>
+                        ) : null
+                    )}
+                    <div className="pt-4 border-t border-border/40 text-xs text-muted-foreground space-y-1">
+                        <div><span className="font-semibold">ID :</span> {costume._id}</div>
+                        <div><span className="font-semibold">Créé le :</span> {new Date(costume._creationTime).toLocaleString()}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
 }

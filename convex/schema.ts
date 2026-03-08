@@ -32,6 +32,7 @@ export default defineSchema({
     quantite: v.optional(v.number()),
     emplacement: v.optional(v.string()),
     portant: v.optional(v.number()),
+    divers: v.optional(v.string()),
     photo_prise_par: v.optional(v.string()),
   }).index("by_quantite", ["quantite"]),
 
@@ -69,7 +70,8 @@ export default defineSchema({
     ordre: v.optional(v.number()),
     duree: v.optional(v.number()),
     description: v.optional(v.string()),
-  }).index("by_tableauId", ["tableauId"]).index("by_tableauId_and_ordre", ["tableauId", "ordre"]),
+  }).index("by_tableauId", ["tableauId"])
+    .index("by_tableauId_and_ordre", ["tableauId", "ordre"]),
 
   danseuses: defineTable({
     nom: v.string(),
@@ -80,8 +82,8 @@ export default defineSchema({
 
   assignations: defineTable({
     danseuseId: v.id("danseuses"),
-    parentChoregraphieId: v.id("choregraphies"),
-    choregraphieId: v.union(v.id("roles_choregraphie"), v.id("groupes_choregraphie")),
+    parentChoregraphieId: v.optional(v.id("choregraphies")),
+    choregraphieId: v.optional(v.union(v.id("roles_choregraphie"), v.id("groupes_choregraphie"))),
     costumeIds: v.optional(v.array(v.id("costumes"))),
     accessoireIds: v.optional(v.array(v.id("accessoires"))),
   })
@@ -89,7 +91,7 @@ export default defineSchema({
     .index("by_choregraphieId", ["choregraphieId"])
     .index("by_danseuseId", ["danseuseId"])
     .index("by_parentChoregraphieId", ["parentChoregraphieId"])
-    .index("by_parentChoregraphieId_danseuseId", [ "danseuseId", "parentChoregraphieId"]),
+    .index("by_parentChoregraphieId_danseuseId", ["danseuseId", "parentChoregraphieId"]),
 
 
 

@@ -1,6 +1,6 @@
 import {mutation, query} from "./_generated/server";
 import {v} from "convex/values";
-import {Id} from "./_generated/dataModel";
+import {Doc, Id} from "./_generated/dataModel";
 import {Accessoire, Costume} from "../type";
 
 // Récupère tous les utilisateurs avec leur rôle et assignations si danseuse
@@ -204,8 +204,8 @@ export const getDanseuse = query({
 });
 // récupère les danseuses par saison avec leur score
 export const getDanseusesBySaison = query({
-        args: {choreId: v.id("choregraphies")},
-        handler: async (ctx, {choreId}) => {
+        args: {tableauId: v.id("choregraphies")},
+        handler: async (ctx, {tableauId}) => {
             const activeSaison = await ctx.db
                 .query("saison")
                 .filter((q) => q.eq(q.field("active"), true))
@@ -215,19 +215,19 @@ export const getDanseusesBySaison = query({
                 throw new Error("Aucune saison active trouvée");
             }
 
-            const choregraphie = await ctx.db.get(choreId);
-            if (!choregraphie) {
-                throw new Error("Chorégraphie non trouvée");
+            const tableau = await ctx.db.get(tableauId);
+            if (!tableau) {
+                throw new Error("Tableau non trouvé");
             }
 
             const [roles, groupes] = await Promise.all([
                 ctx.db
                     .query("roles_choregraphie")
-                    .withIndex("by_choregraphieId", (q) => q.eq("choregraphieId", choregraphie._id))
+                    .withIndex("by_choregraphieId", (q) => q.eq("choregraphieId", tableau._id))
                     .collect(),
                 ctx.db
                     .query("groupes_choregraphie")
-                    .withIndex("by_choregraphieId", (q) => q.eq("choregraphieId", choregraphie._id))
+                    .withIndex("by_choregraphieId", (q) => q.eq("choregraphieId", tableau._id))
                     .collect(),
             ]);
 
@@ -267,17 +267,17 @@ export const getDanseusesBySaison = query({
                     const user = await ctx.db.get(danseuse.userId as Id<"users">);
                     let score = 0;
 
-                    // Fonction utilitaire pour vérifier la présence dans une chorégraphie
-                    async function checkPresence(choreId: Id<"choregraphies"> | undefined) {
-                        if (!choreId) return false;
+                    // Fonction utilitaire pour vérifier la présence dans un tableau
+                    async function checkPresence(tabId: Id<"choregraphies"> | undefined) {
+                        if (!tabId) return false;
                         const groupes = await ctx.db
                             .query("groupes_choregraphie")
-                            .withIndex("by_choregraphieId", (q) => q.eq("choregraphieId", choreId))
+                            .withIndex("by_choregraphieId", (q) => q.eq("choregraphieId", tabId))
                             .collect();
                         const promises = [
                             ctx.db.query("roles_choregraphie")
                                 .withIndex("by_choregraphieId_and_danseuseId", (q) =>
-                                    q.eq("choregraphieId", choreId).eq("danseuseId", danseuse._id)
+                                    q.eq("choregraphieId", tabId).eq("danseuseId", danseuse._id)
                                 )
                                 .unique(),
                             ...groupes.map((groupe) =>
@@ -297,8 +297,8 @@ export const getDanseusesBySaison = query({
                     .query("choregraphies")
                     .withIndex("by_tableauId_and_ordre", (q) =>
                         q
-                        .eq("tableauId", choregraphie.tableauId)
-                        .lt("ordre", choregraphie.ordre)
+                        .eq("tableauId", tableau.tableauId)
+                        .lt("ordre", tableau.ordre)
                     )
                     .collect();
 
@@ -310,15 +310,15 @@ export const getDanseusesBySaison = query({
                     if (await checkPresence(previousChore?._id)) score += 6;
 
                     // Courante
-                    if (await checkPresence(choregraphie._id)) score += 6;
+                    if (await checkPresence(tableau._id)) score += 6;
 
                     // Suivante
                     const nextList = await ctx.db
                     .query("choregraphies")
                     .withIndex("by_tableauId_and_ordre", (q) =>
                         q
-                        .eq("tableauId", choregraphie.tableauId)
-                        .gt("ordre", choregraphie.ordre)
+                        .eq("tableauId", tableau.tableauId)
+                        .gt("ordre", tableau.ordre)
                     )
                     .collect();
 
@@ -331,7 +331,7 @@ export const getDanseusesBySaison = query({
                     const assignation = await ctx.db
                         .query("assignations")
                         .withIndex("by_parentChoregraphieId_danseuseId", (q) =>
-                            q.eq("danseuseId", danseuse._id).eq("parentChoregraphieId", choreId as Id<"choregraphies">)
+                            q.eq("danseuseId", danseuse._id).eq("parentChoregraphieId", tableauId as Id<"choregraphies">)
                         )
                         .unique();
 
@@ -431,33 +431,55 @@ export const myStats = query({
       .withIndex("by_danseuseId", (q) => q.eq("danseuseId", danseuse._id))
       .collect();
 
-    if (assignations.length === 0) {
+    // Liaisons via groupes (danseuses_by_groupe → groupes_choregraphie)
+    const groupeLiaisons = await ctx.db
+      .query("danseuses_by_groupe")
+      .withIndex("by_danseuseId", (q) => q.eq("danseuseId", danseuse._id))
+      .collect();
+    const groupeDocs = (await Promise.all(
+      groupeLiaisons.map((l) => ctx.db.get(l.groupeId))
+    )).filter(Boolean) as Doc<"groupes_choregraphie">[];
+
+    if (assignations.length === 0 && groupeLiaisons.length === 0) {
       return {
         status: "ok" as const,
         saison: saisonActive ? { _id: saisonActive._id, nom: saisonActive.nom, annee: saisonActive.annee } : null,
         danseuse: { _id: danseuse._id, nom: danseuse.nom },
+        tableaux: [] as { _id: Id<"choregraphies">; nom: string; ordre: number | undefined; duree: number | undefined; blocId: Id<"tableaux"> | null; blocNom: string; costumes: Doc<"costumes">[]; accessoires: Doc<"accessoires">[] }[],
         stats: {
           chorees: 0,
           costumesUniques: 0,
           accessoiresUniques: 0,
           dureeTotaleSeconds: 0,
           tempsMoyenEntrePassagesSeconds: null as number | null,
-          choreesParTableau: [] as { tableauId: Id<"tableaux"> | null; tableauNom: string; count: number }[],
+          choreesParTableau: [] as { blocId: Id<"tableaux"> | null; blocNom: string; count: number }[],
         },
       };
     }
 
-    // Parents chorégraphies
-    const parentIds = Array.from(new Set(assignations.map((a) => a.parentChoregraphieId)));
-    const parentDocs = await Promise.all(parentIds.map((id) => ctx.db.get(id)));
-    const parents = parentDocs.filter(Boolean) as NonNullable<typeof parentDocs[number]>[];
+    // Parents tableaux via assignations
+    const parentIdsFromAssignations = new Set(
+      assignations
+        .map((a) => a.parentChoregraphieId)
+        .filter((id): id is Id<"choregraphies"> => !!id)
+    );
 
-    // Tableaux des parents
-    const tableauIds = Array.from(
+    // Parents tableaux via groupes (already fetched above)
+    const parentIdsFromGroupes = new Set(
+      groupeDocs.map((g) => g.choregraphieId)
+    );
+
+    // Merge both sources (deduplicated)
+    const parentIds = Array.from(new Set([...parentIdsFromAssignations, ...parentIdsFromGroupes]));
+    const parentDocs = await Promise.all(parentIds.map((id) => ctx.db.get(id)));
+    const parents = parentDocs.filter(Boolean) as Doc<"choregraphies">[];
+
+    // Blocs des parents
+    const blocIds = Array.from(
       new Set(parents.map((p) => p.tableauId).filter(Boolean) as Id<"tableaux">[])
     );
-    const tableauDocs = await Promise.all(tableauIds.map((id) => ctx.db.get(id)));
-    const tableauById = new Map(tableauDocs.filter(Boolean).map((t) => [t!._id, t!]));
+    const blocDocs = await Promise.all(blocIds.map((id) => ctx.db.get(id)));
+    const blocById = new Map(blocDocs.filter(Boolean).map((t) => [t!._id, t!]));
 
     // Counts basiques
     const chorees = parents.length;
@@ -471,22 +493,55 @@ export const myStats = query({
       new Set(assignations.flatMap((a) => a.accessoireIds ?? []).map((id) => id.toString()))
     ).length;
 
-    // Chorégraphies par tableau (sur mes parents)
-    const countByTableau = new Map<string, { tableauId: Id<"tableaux"> | null; tableauNom: string; count: number }>();
+    // Tableaux par bloc (sur mes parents)
+    const countByBloc = new Map<string, { blocId: Id<"tableaux"> | null; blocNom: string; count: number }>();
     for (const p of parents) {
-      const key = p.tableauId ? p.tableauId.toString() : "no_tableau";
+      const key = p.tableauId ? p.tableauId.toString() : "no_bloc";
       const entry =
-        countByTableau.get(key) ??
+        countByBloc.get(key) ??
         {
-          tableauId: p.tableauId ?? null,
-          tableauNom: p.tableauId ? tableauById.get(p.tableauId)?.nom ?? "Tableau" : "Sans tableau",
+          blocId: p.tableauId ?? null,
+          blocNom: p.tableauId ? blocById.get(p.tableauId)?.nom ?? "Bloc" : "Sans bloc",
           count: 0,
         };
       entry.count += 1;
-      countByTableau.set(key, entry);
+      countByBloc.set(key, entry);
     }
-    const choreesParTableau = Array.from(countByTableau.values()).sort((a, b) =>
-      a.tableauNom.localeCompare(b.tableauNom)
+    const choreesParTableau = Array.from(countByBloc.values()).sort((a, b) =>
+      a.blocNom.localeCompare(b.blocNom)
+    );
+
+    // Actual tableau details with costumes & accessoires per tableau
+    const tableauxDetails = await Promise.all(
+      parents
+        .sort((a, b) => {
+          const bA = a.tableauId ? blocById.get(a.tableauId)?.nom ?? "" : "";
+          const bB = b.tableauId ? blocById.get(b.tableauId)?.nom ?? "" : "";
+          return bA.localeCompare(bB) || (a.ordre ?? 0) - (b.ordre ?? 0);
+        })
+        .map(async (p) => {
+          const asgns = assignations.filter((a) => a.parentChoregraphieId === p._id);
+          const costumeIds = Array.from(
+            new Set(asgns.flatMap((a) => a.costumeIds ?? []).map((id) => id.toString()))
+          );
+          const accessoireIds = Array.from(
+            new Set(asgns.flatMap((a) => a.accessoireIds ?? []).map((id) => id.toString()))
+          );
+          const [costumes, accessoires] = await Promise.all([
+            Promise.all(costumeIds.map((id) => ctx.db.get(id as Id<"costumes">))),
+            Promise.all(accessoireIds.map((id) => ctx.db.get(id as Id<"accessoires">))),
+          ]);
+          return {
+            _id: p._id,
+            nom: p.nom,
+            ordre: p.ordre,
+            duree: p.duree,
+            blocId: p.tableauId ?? null,
+            blocNom: p.tableauId ? blocById.get(p.tableauId)?.nom ?? "Bloc" : "Sans bloc",
+            costumes: costumes.filter(Boolean) as Doc<"costumes">[],
+            accessoires: accessoires.filter(Boolean) as Doc<"accessoires">[],
+          };
+        })
     );
 
     // Temps moyen entre deux passages (calculé par tableau, via les durées des chorées intermédiaires)
@@ -498,28 +553,27 @@ export const myStats = query({
     // - collecter tous les gaps et faire une moyenne globale
     const gapDurations: number[] = [];
 
-    for (const tid of tableauIds) {
-      const allInTableau = await ctx.db
+    for (const bid of blocIds) {
+      const allInBloc = await ctx.db
         .query("choregraphies")
-        .withIndex("by_tableauId", (q) => q.eq("tableauId", tid))
+        .withIndex("by_tableauId", (q) => q.eq("tableauId", bid))
         .collect();
 
-      // Index par ordre (on garde tout, mais on traitera ordre null en fin)
-      const allSorted = allInTableau
+      const allSorted = allInBloc
         .filter((c) => typeof c.ordre === "number")
         .sort((a, b) => (a.ordre ?? 0) - (b.ordre ?? 0));
 
-      const myInTableau = parents
-        .filter((p) => p.tableauId && p.tableauId === tid && typeof p.ordre === "number")
+      const myInBloc = parents
+        .filter((p) => p.tableauId && p.tableauId === bid && typeof p.ordre === "number")
         .sort((a, b) => (a.ordre ?? 0) - (b.ordre ?? 0));
 
-      if (myInTableau.length < 2) continue;
+      if (myInBloc.length < 2) continue;
 
       // Pré-calcul: cumul des durées entre positions pour accélérer (optionnel vu les tailles)
       // Ici: simple somme entre deux ordres
-      for (let i = 0; i < myInTableau.length - 1; i++) {
-        const o1 = myInTableau[i].ordre as number;
-        const o2 = myInTableau[i + 1].ordre as number;
+      for (let i = 0; i < myInBloc.length - 1; i++) {
+        const o1 = myInBloc[i].ordre as number;
+        const o2 = myInBloc[i + 1].ordre as number;
 
         if (o2 <= o1) continue;
 
@@ -538,6 +592,7 @@ export const myStats = query({
       status: "ok" as const,
       saison: saisonActive ? { _id: saisonActive._id, nom: saisonActive.nom, annee: saisonActive.annee } : null,
       danseuse: { _id: danseuse._id, nom: danseuse.nom },
+      tableaux: tableauxDetails,
       stats: {
         chorees,
         costumesUniques,

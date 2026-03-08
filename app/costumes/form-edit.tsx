@@ -23,7 +23,7 @@ const costumeSchema = z.object({
     quantite: z.number().min(0, {message: "La quantité doit être au moins 0"}).optional(),
     emplacement: z.string().optional(),
     portant: z.coerce.number().optional(),
-    photo_prise_par: z.string().optional(),
+    divers: z.string().optional(),
 });
 
 type CostumeFormValues = z.infer<typeof costumeSchema>;
@@ -87,7 +87,7 @@ export default function CostumeEditForm({ costume , onEdit }: Props) {
             quantite: costume.quantite ?? undefined,
             emplacement: costume.emplacement ?? "",
             portant: costume.portant ?? undefined,
-            photo_prise_par: costume.photo_prise_par ?? "",
+            divers: costume.divers ?? "",
         },
     });
 
@@ -278,10 +278,10 @@ export default function CostumeEditForm({ costume , onEdit }: Props) {
                 />
                 <FormField
                     control={form.control}
-                    name="photo_prise_par"
-                    render={({ field  }) => (
+                    name="divers"
+                    render={({ field }) => (
                         <FormItem>
-                            <FormLabel>Photo prise par</FormLabel>
+                            <FormLabel>Divers</FormLabel>
                             <FormControl>
                                 <Input {...field} />
                             </FormControl>

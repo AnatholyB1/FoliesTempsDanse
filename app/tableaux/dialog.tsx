@@ -1,5 +1,5 @@
 import React from "react";
-import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage} from "@/components/ui/form";
+import {Form, FormControl, FormField, FormItem, FormLabel, FormMessage,} from "@/components/ui/form";
 import {Input} from "@/components/ui/input";
 import {
   Dialog,
@@ -16,42 +16,46 @@ import {Loader2} from "lucide-react";
 import z from "zod";
 import {useForm} from "react-hook-form";
 import {zodResolver} from "@hookform/resolvers/zod";
-import {Saison, Tableau} from "@/type";
+import {Choregraphie, Tableau} from "@/type";
 import {Select, SelectContent, SelectItem, SelectTrigger, SelectValue} from "@/components/ui/select";
 
-const tableauSchema = z.object({
+const choregraphieSchema = z.object({
   nom: z.string().min(2, "Le nom est requis"),
-  saisonId: z.string().min(1, "La saison est requise"),
+  blocId: z.string().min(1, "Le bloc est requis"),
+  musique: z.string().optional(),
+  duree: z.coerce.number().optional(),
   description: z.string().optional(),
 });
 
-export type TableauFormValues = z.infer<typeof tableauSchema>;
+export type ChoregraphieFormValues = z.infer<typeof choregraphieSchema>;
 
-type TableauFormDialogProps = {
-  editTableau?: Tableau | null;
-  saisons: { _id: string; nom: string }[];
+type ChoregraphieFormDialogProps = {
+  editChoregraphie?: Choregraphie | null;
   loading: boolean;
-  onSave: (values: TableauFormValues) => void;
+  onSave: (values: ChoregraphieFormValues) => void;
+  tableaux: Tableau[];
   children?: React.ReactNode;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 };
 
-export function TableauFormDialog({
-                                    editTableau,
-                                    saisons,
-                                    loading,
-                                    onSave,
-                                    children,
-                                    open,
-                                    onOpenChange,
-                                  }: TableauFormDialogProps) {
-  const form = useForm<TableauFormValues>({
-    resolver: zodResolver(tableauSchema),
+export function ChoregraphieFormDialog({
+                                         editChoregraphie,
+                                         loading,
+                                         onSave,
+                                         tableaux,
+                                         children,
+                                         open,
+                                         onOpenChange,
+                                       }: ChoregraphieFormDialogProps) {
+  const form = useForm<ChoregraphieFormValues>({
+    resolver: zodResolver(choregraphieSchema),
     defaultValues: {
-      nom: editTableau?.nom ?? "",
-      saisonId: editTableau?.saisonId ?? (saisons[0]?._id ?? ""),
-      description: editTableau?.description ?? "",
+      nom: editChoregraphie?.nom ?? "",
+      blocId: editChoregraphie?.blocId ?? (tableaux[0]?._id ?? ""),
+      musique: editChoregraphie?.musique ?? "",
+      duree: editChoregraphie?.duree ?? undefined,
+      description: editChoregraphie?.description ?? "",
     },
     mode: "onChange",
   });
@@ -64,13 +68,13 @@ export function TableauFormDialog({
           <DialogContent className="animate-fade-in">
             <DialogHeader>
               <DialogTitle className="text-xl font-semibold mb-2">
-                {editTableau ? "Modifier le tableau" : "Créer un tableau"}
+                {editChoregraphie ? "Modifier le tableau" : "Créer un tableau"}
               </DialogTitle>
             </DialogHeader>
             <FormField
               name="nom"
               control={form.control}
-              render={({ field }) => (
+              render={({field}) => (
                 <FormItem>
                   <FormLabel htmlFor="nom">Nom</FormLabel>
                   <FormControl>
@@ -78,48 +82,82 @@ export function TableauFormDialog({
                       {...field}
                       id="nom"
                       placeholder="Nom du tableau"
-                      className="bg-card text-card-foreground focus:ring-2 focus:ring-[var(--primary)] focus:outline-none"
+                      className="bg-card text-card-foreground"
                     />
                   </FormControl>
-                  <FormMessage className="text-destructive text-xs" />
+                  <FormMessage className="text-destructive text-xs"/>
                 </FormItem>
               )}
             />
             <FormField
-              name="saisonId"
+              name="blocId"
               control={form.control}
-              render={({ field }) => (
+              render={({field}) => (
                 <FormItem>
-                  <FormLabel htmlFor="saisonId">Saison</FormLabel>
+                  <FormLabel htmlFor="blocId">Bloc</FormLabel>
                   <FormControl>
                     <Select
+                      value={field.value}
                       onValueChange={field.onChange}
-                      defaultValue={field.value}
+                      disabled={loading}
                     >
-                      <SelectTrigger>
-                        <SelectValue
-                          placeholder="Choisir une saison"/>
+                      <SelectTrigger id="blocId" className="w-full bg-card text-card-foreground">
+                        <SelectValue placeholder="Sélectionner un bloc"/>
                       </SelectTrigger>
                       <SelectContent>
-                        {saisons?.map((saison: Saison) => (
-                          <SelectItem
-                            key={saison._id}
-                            value={saison._id}
-                          >
-                            {saison.nom}
+                        {tableaux.map((t) => (
+                          <SelectItem key={t._id} value={t._id}>
+                            {t.nom}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </FormControl>
-                  <FormMessage className="text-destructive text-xs" />
+                  <FormMessage className="text-destructive text-xs"/>
+                </FormItem>
+              )}
+            />
+            <FormField
+              name="musique"
+              control={form.control}
+              render={({field}) => (
+                <FormItem>
+                  <FormLabel htmlFor="musique">Musique</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      id="musique"
+                      placeholder="Musique"
+                      className="bg-card text-card-foreground"
+                    />
+                  </FormControl>
+                  <FormMessage className="text-destructive text-xs"/>
+                </FormItem>
+              )}
+            />
+            <FormField
+              name="duree"
+              control={form.control}
+              render={({field}) => (
+                <FormItem>
+                  <FormLabel htmlFor="duree">Durée (en secondes)</FormLabel>
+                  <FormControl>
+                    <Input
+                      {...field}
+                      id="duree"
+                      type="number"
+                      placeholder="Durée"
+                      className="bg-card text-card-foreground"
+                    />
+                  </FormControl>
+                  <FormMessage className="text-destructive text-xs"/>
                 </FormItem>
               )}
             />
             <FormField
               name="description"
               control={form.control}
-              render={({ field }) => (
+              render={({field}) => (
                 <FormItem>
                   <FormLabel htmlFor="description">Description</FormLabel>
                   <FormControl>
@@ -127,10 +165,10 @@ export function TableauFormDialog({
                       {...field}
                       id="description"
                       placeholder="Description"
-                      className="bg-card text-card-foreground focus:ring-2 focus:ring-[var(--primary)] focus:outline-none"
+                      className="bg-card text-card-foreground"
                     />
                   </FormControl>
-                  <FormMessage className="text-destructive text-xs" />
+                  <FormMessage className="text-destructive text-xs"/>
                 </FormItem>
               )}
             />
@@ -145,10 +183,10 @@ export function TableauFormDialog({
                 variant="default"
                 disabled={loading}
                 onClick={form.handleSubmit(onSave)}
-                style={{ boxShadow: "0 0 0 2px var(--primary)" }}
+                style={{boxShadow: "0 0 0 2px var(--primary)"}}
               >
                 {loading ? (
-                  <Loader2 className="animate-spin w-4 h-4" />
+                  <Loader2 className="animate-spin w-4 h-4"/>
                 ) : (
                   "Enregistrer"
                 )}
@@ -161,8 +199,8 @@ export function TableauFormDialog({
   );
 }
 
-type TableauDeleteDialogProps = {
-  tableauToDelete: Tableau | null;
+type ChoregraphieDeleteDialogProps = {
+  choregraphieToDelete: Choregraphie | null;
   onDelete: () => void;
   loading: boolean;
   children?: React.ReactNode;
@@ -170,14 +208,14 @@ type TableauDeleteDialogProps = {
   onOpenChange?: (open: boolean) => void;
 };
 
-export function TableauDeleteDialog({
-                                      tableauToDelete,
-                                      onDelete,
-                                      loading,
-                                      children,
-                                      open,
-                                      onOpenChange,
-                                    }: TableauDeleteDialogProps) {
+export function ChoregraphieDeleteDialog({
+                                           choregraphieToDelete,
+                                           onDelete,
+                                           loading,
+                                           children,
+                                           open,
+                                           onOpenChange,
+                                         }: ChoregraphieDeleteDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger asChild>{children}</DialogTrigger>
@@ -188,7 +226,8 @@ export function TableauDeleteDialog({
           </DialogTitle>
           <DialogDescription>
             Voulez-vous vraiment supprimer le tableau{" "}
-            <span className="font-bold">{tableauToDelete?.nom}</span> ? Cette action est irréversible.
+            <span className="font-bold">{choregraphieToDelete?.nom}</span> ? Cette
+            action est irréversible.
           </DialogDescription>
         </DialogHeader>
         <DialogFooter>
@@ -204,7 +243,7 @@ export function TableauDeleteDialog({
             disabled={loading}
           >
             {loading ? (
-              <Loader2 className="animate-spin w-4 h-4" />
+              <Loader2 className="animate-spin w-4 h-4"/>
             ) : (
               "Supprimer"
             )}
