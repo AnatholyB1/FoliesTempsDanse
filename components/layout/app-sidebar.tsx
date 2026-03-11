@@ -128,6 +128,27 @@ export default function AppSidebar() {
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
+        <SidebarSeparator className="my-1" />
+        <div className="flex flex-col gap-1 px-1">
+          <Link
+            href="/mentions-legales"
+            className="text-xs text-muted-foreground/60 hover:text-primary transition-colors px-2 py-0.5 rounded"
+          >
+            Mentions légales
+          </Link>
+          <Link
+            href="/politique-de-confidentialite"
+            className="text-xs text-muted-foreground/60 hover:text-primary transition-colors px-2 py-0.5 rounded"
+          >
+            Confidentialité
+          </Link>
+          <Link
+            href="/condition-d-utilisation"
+            className="text-xs text-muted-foreground/60 hover:text-primary transition-colors px-2 py-0.5 rounded"
+          >
+            CGU
+          </Link>
+        </div>
         <p
           className="text-xs text-muted-foreground/50 text-center tracking-wide mt-2"
           style={{ fontFamily: "var(--font-playfair)" }}

@@ -3,6 +3,7 @@ import {ClerkProvider} from "@clerk/nextjs";
 import {Geist, Geist_Mono, Playfair_Display} from "next/font/google";
 import {ConvexClientProvider} from "@/providers/ConvexClientProvider";
 import Header from "@/components/layout/header";
+import Footer from "@/components/layout/footer";
 import {SidebarInset, SidebarProvider} from "@/components/ui/sidebar"
 import AppSidebar from "@/components/layout/app-sidebar"
 import {ThemeProvider} from "next-themes";
@@ -72,6 +73,7 @@ export default function RootLayout({
               <SidebarInset>
                 <Header/>
                 {children}
+                <Footer/>
                 <Toaster/>
               </SidebarInset>
             </SidebarProvider>
