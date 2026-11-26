@@ -90,6 +90,15 @@ export default function Footer() {
               Anatholy Bricon
             </a>
           </div>
+          <p className="text-xs text-muted-foreground mt-1">
+            Site réalisé par{" "}
+            <a
+              href="https://sevalys.com/"
+              className="hover:text-primary transition-colors underline underline-offset-2"
+            >
+              agence web à Tours
+            </a>
+          </p>
         </div>
       </div>
 
